@@ -9,7 +9,8 @@
 // ############################################################################
 //                            Windows Globals
 // ############################################################################
-HWND window;
+static HWND window;
+static HDC dc;
 
 // ############################################################################
 //                            Platform Implementations
@@ -21,6 +22,13 @@ LRESULT CALLBACK windows_window_callback(HWND window, UINT msg, WPARAM wParam, L
             running=false;
             break;
         }
+        case WM_SIZE:{
+            RECT rect={};
+            GetClientRect(window,&rect);
+            input.screenSizeX=rect.right-rect.left;
+            input.screenSizeY=rect.bottom-rect.top;
+            break;
+        }
         default:{
             result=DefWindowProcA(window,msg,wParam,lParam);
         }
@@ -30,6 +38,7 @@ LRESULT CALLBACK windows_window_callback(HWND window, UINT msg, WPARAM wParam, L
 bool platform_create_window(int width, int height, char* title){
     HINSTANCE instance=GetModuleHandleA(0);
     WNDCLASSA wc={};
+    wc.hInstance        =instance;
     wc.hIcon            =LoadIcon(instance, IDI_APPLICATION);
     wc.hCursor          =LoadCursor(NULL,IDC_ARROW);
     wc.lpszClassName    =title;
@@ -133,7 +142,7 @@ bool platform_create_window(int width, int height, char* title){
             SM_ASSERT(false,"Failed to create Windows Window");
             return false;
         }
-        HDC dc=GetDC(window);
+        dc=GetDC(window);
         if (!dc){
             SM_ASSERT(false,"Failed to get HDC");
             return false;
@@ -197,7 +206,7 @@ void platform_update_window(){
 void* platform_load_gl_function(char* funName){
     PROC proc=wglGetProcAddress(funName);
     if (!proc){
-        static HMODULE openglDLL=LoadLibraryW((LPCWSTR)"opengl32.dll");
+        static HMODULE openglDLL=LoadLibraryA((LPCSTR)"opengl32.dll");
         proc=GetProcAddress(openglDLL,funName);
         if (!proc){
             SM_ASSERT(false,"Failed to load: %s",funName);
@@ -205,4 +214,8 @@ void* platform_load_gl_function(char* funName){
         }
     }
     return (void*)proc;
+}
+
+void platform_swap_buffers(){
+    SwapBuffers(dc);
 }
