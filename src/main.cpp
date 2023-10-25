@@ -1,5 +1,5 @@
 
-
+#include "LTR_Engine_lib.h"
 
 // ############################################################################
 //                            Platform Globals
@@ -82,9 +82,10 @@ void platform_update_window(){
 #endif
 
 int main(){
-    platform_create_window(1200,720,"LTR Engine");
+    platform_create_window(1200,720,(char*)"LTR Engine");
     while (running){
         platform_update_window();
+        SM_TRACE("Test trace");
     }
     return 0;
 }
