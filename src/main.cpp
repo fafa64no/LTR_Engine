@@ -10,6 +10,7 @@ static bool running=true;
 //                            Platform Functions
 // ############################################################################
 bool platform_create_window(int width, int height, char* title);
+void platform_update_window();
 
 // ############################################################################
 //                            Windows Platform
@@ -22,25 +23,39 @@ bool platform_create_window(int width, int height, char* title);
 // ############################################################################
 //                            Windows Globals
 // ############################################################################
+HWND window;
 
 // ############################################################################
 //                            Platform Implementations
 // ############################################################################
+LRESULT CALLBACK windows_window_callback(HWND window, UINT msg, WPARAM wParam, LPARAM lParam){
+    LRESULT result=0;
+    switch (msg){
+        case WM_CLOSE:{
+            running=false;
+            break;
+        }
+        default:{
+            result=DefWindowProcA(window,msg,wParam,lParam);
+        }
+    }
+    return result;
+}
 bool platform_create_window(int width, int height, char* title){
-    HINSTANCE instance=GetModuleHandleW(0);
-    WNDCLASSW wc={};
+    HINSTANCE instance=GetModuleHandleA(0);
+    WNDCLASSA wc={};
     wc.hIcon            =LoadIcon(instance, IDI_APPLICATION);
     wc.hCursor          =LoadCursor(NULL,IDC_ARROW);
-    wc.lpszClassName    =(LPCWSTR)title;
-    wc.lpfnWndProc      =DefWindowProcW;
-    if (!RegisterClassW(&wc)){
+    wc.lpszClassName    =title;
+    wc.lpfnWndProc      =windows_window_callback;
+    if (!RegisterClassA(&wc)){
         return false;
     }
     int dwStyle=WS_OVERLAPPEDWINDOW;
-    HWND window=CreateWindowExW(
+    window=CreateWindowExA(
         0,
-        (LPCWSTR)title,
-        (LPCWSTR)title,
+        title,
+        title,
         dwStyle,
         100,
         100,
@@ -57,12 +72,19 @@ bool platform_create_window(int width, int height, char* title){
     ShowWindow(window, SW_SHOW);
     return true;
 }
+void platform_update_window(){
+    MSG msg;
+    while (PeekMessageA(&msg,window,0,0,PM_REMOVE)){
+        TranslateMessage(&msg);
+        DispatchMessageA(&msg);
+    }
+}
 #endif
 
 int main(){
     platform_create_window(1200,720,"LTR Engine");
     while (running){
-        //Do stuff
+        platform_update_window();
     }
     return 0;
 }
