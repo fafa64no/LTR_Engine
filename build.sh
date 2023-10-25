@@ -3,4 +3,4 @@
 libs=-luser32
 warnings=-Wno-writable-strings
 
-clang src/main.cpp -LTR_Engine.exe $libs $warnings
+clang src/main.cpp -o LTR_Engine.exe $libs $warnings

@@ -5,7 +5,7 @@
             "name": "Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/LTR_Engine**.exe",
+            "program": "${workspaceFolder}/LTR_Engine.exe",
             "args": [],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
