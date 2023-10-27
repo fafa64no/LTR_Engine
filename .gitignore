@@ -7,6 +7,7 @@
 *.pdb
 *.nativecodeanalysis.cml
 *.lib
+*.log
 build
 .vs
 c_cpp_properties.json

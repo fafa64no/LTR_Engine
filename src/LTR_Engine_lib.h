@@ -1,8 +1,9 @@
 #pragma once
 
 #include <stdio.h>
+#include <fstream>
+#include <string>       //Used to get memset
 #include <stdlib.h>     //Used to get malloc
-#include <string.h>     //Used to get memset
 #include <sys/stat.h>   //Used to get edit timestamp of files
 
 // ############################################################################
@@ -10,6 +11,7 @@
 // ############################################################################
 #ifdef _WIN32
 #define DEBUG_BREAK() __debugbreak()
+#define EXPORT_FN __declspec(dllexport)
 #elif __linux__
 #define DEBUG_BREAK() __builtin_debugtrap()
 #elif __APPLE__
@@ -24,6 +26,13 @@
 // ############################################################################
 //                            Logging
 // ############################################################################
+static int debug_instance_id;
+const std::string debug_log_location="logs/";
+static char* debug_log_path;
+bool append_file(const char* filePath,std::string buffer);
+void debug_log(std::string msg){
+    append_file(debug_log_path,msg);
+}
 enum TextColor{
     TEXT_COLOR_BLACK,
     TEXT_COLOR_RED,
@@ -70,9 +79,9 @@ void _log(char* prefix,char* msg,TextColor textColor, Args... args){
     puts(textBuffer);
 }
 
-#define SM_TRACE(msg,...) _log("TRACE: ",msg,TEXT_COLOR_GREEN,##__VA_ARGS__);
-#define SM_WARN(msg,...) _log("WARN: ",msg,TEXT_COLOR_YELLOW,##__VA_ARGS__);
-#define SM_ERROR(msg,...) _log("ERROR: ",msg,TEXT_COLOR_RED,##__VA_ARGS__);
+#define SM_TRACE(msg,...){_log("TRACE: ",msg,TEXT_COLOR_GREEN,##__VA_ARGS__);debug_log((std::string)msg);}
+#define SM_WARN(msg,...){_log("WARN: ",msg,TEXT_COLOR_YELLOW,##__VA_ARGS__);debug_log((std::string)msg);}
+#define SM_ERROR(msg,...){_log("ERROR: ",msg,TEXT_COLOR_RED,##__VA_ARGS__);debug_log((std::string)msg);}
 
 #define SM_ASSERT(x,msg,...){           \
     if (!(x)){                          \
@@ -80,7 +89,7 @@ void _log(char* prefix,char* msg,TextColor textColor, Args... args){
         DEBUG_BREAK();                  \
         SM_ERROR("Assertion HIT");      \
     }                                   \
-}                                       
+}
 
 // ############################################################################
 //                            Bump Allocator
@@ -182,6 +191,17 @@ void write_file(char* filePath,char* buffer,int size){
     fwrite(buffer,sizeof(char),size,file);
     fclose(file);
 }
+void write_file(const char* filePath,char* buffer,int size){
+    SM_ASSERT(filePath,"No filePath supplied");
+    SM_ASSERT(buffer,"No buffer supplied");
+    auto file=fopen(filePath,"wb");
+    if (!file){
+        SM_ERROR("Failed opening file: %s",filePath);
+        return;
+    }
+    fwrite(buffer,sizeof(char),size,file);
+    fclose(file);
+}
 bool copy_file(char* fileName,char* outputName,char* buffer){
     int fileSize=0;
     char* data=read_file(fileName,&fileSize,buffer);
@@ -207,10 +227,29 @@ bool copy_file(char* fileName,char* outputName,BumpAllocator* bumpAllocator){
     }
     return false;
 }
+bool append_file(const char* filePath,std::string buffer){
+    std::fstream stream;
+    stream.open(filePath,std::fstream::app);
+    if (!stream.is_open()){
+        SM_ERROR("Failed to open file stream: %s",filePath);
+        return false;
+    }
+    stream<<buffer<<"\n";
+    stream.close();
+    return true;
+}
 
-
-
-
+// ############################################################################
+//                            Math stuff
+// ############################################################################
+struct Vec2{
+    float x;
+    float y;
+};
+struct IVec2{
+    int x;
+    int y;
+};
 
 
 
