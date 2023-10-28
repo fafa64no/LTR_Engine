@@ -1,5 +1,7 @@
 #pragma once
 #include "LTR_Engine_lib.h"
+#include <sstream>
+#include <iostream>
 
 // ############################################################################
 //                            Assets Constants
@@ -43,5 +45,18 @@ Sprite get_sprite(SpriteID spriteID){
     return sprite;
 }
 
+class Shader{
+public:
+    //The program ID
+    unsigned int programID;
+    //Constructor reads and builds the shader
+    Shader(char* vertexPath,char* fragmentPath,BumpAllocator* bumpAllocator);
+    //Use/activate the shader
+    void use();
+    //Utility uniform functions
+    void setBool(const std::string &name,bool value) const;
+    void setInt(const std::string &name,int value) const;
+    void setFloat(const std::string &name,float value) const;
+};
 
 

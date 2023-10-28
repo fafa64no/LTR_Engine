@@ -7,7 +7,7 @@
             "command": "sh build.sh",
             "group": {
                 "kind": "build",
-                "isDefault": false
+                "isDefault": true
             }
         },
         {
@@ -25,7 +25,7 @@
             "command": "sh build.sh; sh start LTR_Engine.exe",
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": false
             }
         }
     ]

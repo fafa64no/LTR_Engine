@@ -238,6 +238,31 @@ bool append_file(const char* filePath,std::string buffer){
     stream.close();
     return true;
 }
+void init_debug_log_system(){
+    srand(get_timestamp("game.dll"));
+    debug_instance_id=rand();
+    {
+        std::string strBuffer="";
+        strBuffer.append(debug_log_location);
+        strBuffer.append("LOG");
+        strBuffer.append(std::to_string(debug_instance_id));
+        strBuffer.append(".log");
+        debug_log_path=(char*)malloc(sizeof(char)*strBuffer.length());
+        strcpy(debug_log_path,strBuffer.c_str());
+    }
+    std::string debug_header="\n------------------------------------------------------";
+    debug_header.append("\nDebug log file ");
+    debug_header.append(std::to_string(debug_instance_id));
+    debug_header.append("\n------------------------------------------------------");
+    if (file_exists(debug_log_path)){
+        write_file(debug_log_path,"",0);
+        append_file(debug_log_path,debug_header);
+    }else{
+        std::ofstream outfile(debug_log_path);
+        outfile<<debug_header<<std::endl;
+        outfile.close();
+    }
+}
 
 // ############################################################################
 //                            Math stuff

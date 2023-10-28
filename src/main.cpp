@@ -10,16 +10,12 @@
 #include "glcorearb.h"
 
 // ############################################################################
-//                            Game DLL Stuff
+//                            Game DLL header
 // ############################################################################
 typedef decltype(init_game) init_game_type;
 typedef decltype(update_game) update_game_type;
 static init_game_type* init_game_ptr;
 static update_game_type* update_game_ptr;
-
-// ############################################################################
-//                            Cross Platform Functions
-// ############################################################################
 void reload_dll(BumpAllocator* transientStorage);
 
 // ############################################################################
@@ -30,33 +26,17 @@ void reload_dll(BumpAllocator* transientStorage);
 #include "win32_platform.cpp"
 #endif
 
+// ############################################################################
+//                            Cross Platform Functions
+// ############################################################################
+#include "assets.cpp"
 #include "gl_renderer.cpp"
 
+// ############################################################################
+//                            Main loop
+// ############################################################################
 int main(){
-    //Debug Log setup
-    srand(get_timestamp("game.dll"));
-    debug_instance_id=rand();
-    {
-        std::string strBuffer="";
-        strBuffer.append(debug_log_location);
-        strBuffer.append("LOG");
-        strBuffer.append(std::to_string(debug_instance_id));
-        strBuffer.append(".log");
-        debug_log_path=(char*)malloc(sizeof(char)*strBuffer.length());
-        strcpy(debug_log_path,strBuffer.c_str());
-    }
-    std::string debug_header="\n------------------------------------------------------";
-    debug_header.append("\nDebug log file ");
-    debug_header.append(std::to_string(debug_instance_id));
-    debug_header.append("\n------------------------------------------------------");
-    if (file_exists(debug_log_path)){
-        write_file(debug_log_path,"",0);
-        append_file(debug_log_path,debug_header);
-    }else{
-        std::ofstream outfile(debug_log_path);
-        outfile<<debug_header<<std::endl;
-        outfile.close();
-    }
+    init_debug_log_system();
     SM_TRACE("Loading LTR_Engine");
     //Memory allocation
     SM_TRACE("Allocating memory");
@@ -97,6 +77,9 @@ int main(){
     return 0;
 }
 
+// ############################################################################
+//                            Game DLL pointers
+// ############################################################################
 void init_game(RenderData* renderDataIn,Input* inputIn){
     init_game_ptr(renderDataIn,inputIn);
 }

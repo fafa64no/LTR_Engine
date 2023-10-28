@@ -1,7 +1,6 @@
 #pragma once
+#include "LTR_Engine_lib.h"
 #include "glcorearb.h"
-
-bool gl_load_texture(const char* path);
 
 // #############################################################################
 //                           OpenGL Function Pointers

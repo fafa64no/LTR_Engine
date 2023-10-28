@@ -1,5 +1,6 @@
 #include "gl_renderer.h"
 #include "LTR_Engine_lib.h"
+#include "assets.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -23,6 +24,8 @@ struct GLContext{
 //                            OpenGL Globals
 // ############################################################################
 static GLContext glContext;
+static Shader* testShader;
+static Shader* quadShader;
 
 // ############################################################################
 //                            OpenGL Functions
@@ -43,81 +46,11 @@ static void APIENTRY gl_debug_callback(
         SM_TRACE((char*)message);
     }
 }
-bool gl_init(BumpAllocator* transientStorage){
-    load_gl_functions();
-    glDebugMessageCallback(&gl_debug_callback,nullptr);
-    //Enables
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_FRAMEBUFFER_SRGB);
-    glEnable(GL_DEPTH_TEST);
+
+void gl_shaders_init(BumpAllocator* transientStorage){
     //Shaders import
-    GLuint vertShaderID=glCreateShader(GL_VERTEX_SHADER);
-    GLuint fragShaderID=glCreateShader(GL_FRAGMENT_SHADER);
-    int fileSize=0;
-    char* vertShader=read_file("assets/shaders/quad.vert",&fileSize,transientStorage);
-    char* fragShader=read_file("assets/shaders/quad.frag",&fileSize,transientStorage);
-    if (!vertShader||!fragShader){
-        SM_ASSERT(false,"failed to load shaders");
-        return false;
-    }
-    //Implement shaders
-    glShaderSource(vertShaderID,1,&vertShader,0);
-    glShaderSource(fragShaderID,1,&fragShader,0);
-    glCompileShader(vertShaderID);
-    glCompileShader(fragShaderID);
-    //Test shaders compiling
-    {
-        int success;
-        char shaderLog[2048]={};
-        glGetShaderiv(vertShaderID,GL_COMPILE_STATUS,&success);
-        if (!success){
-            glGetShaderInfoLog(vertShaderID,2048,0,shaderLog);
-            SM_ASSERT(false,"Failed to compile Vertex Shaders %s",shaderLog);
-        }
-    }{
-        int success;
-        char shaderLog[2048]={};
-        glGetShaderiv(fragShaderID,GL_COMPILE_STATUS,&success);
-        if (!success){
-            glGetShaderInfoLog(fragShaderID,2048,0,shaderLog);
-            SM_ASSERT(false,"Failed to compile Fragment Shaders %s",shaderLog);
-        }
-    }
-    //Link shaders
-    glContext.programID=glCreateProgram();
-    glAttachShader(glContext.programID,vertShaderID);
-    glAttachShader(glContext.programID,fragShaderID);
-    glLinkProgram(glContext.programID);
-    //Clean up
-    glDetachShader(glContext.programID,vertShaderID);
-    glDetachShader(glContext.programID,fragShaderID);
-    //Necessary because people said so idk
-    GLuint VAO;
-    glGenVertexArrays(1,&VAO);
-    glBindVertexArray(VAO);
-    //Texture LTR
-    gl_load_texture(TEXTURE_PATH_LOADING);
-    //Transform storage buffer
-    {
-        glGenBuffers(1,&glContext.transformSBOID);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,glContext.transformSBOID);
-        glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(Transform)* MAX_TRANSFORMS,renderData->transforms,GL_DYNAMIC_DRAW);
-    }
-    //Uniforms
-    {
-        glContext.screenSizeID=glGetUniformLocation(glContext.programID,"screenSize");
-    }
-    //Depth testing
-    glDepthFunc(GL_GREATER);
-    glUseProgram(glContext.programID);
-    //Render
-    glClearColor(0.0f/255.0f,0.0f/255.0f,0.0f/255.0f,1);
-    glClearDepth(0.0f);
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    glViewport(0,0,input->screenSizeX,input->screenSizeY);
-    glDrawArrays(GL_TRIANGLES,0,6);
-    return true;
+    testShader=new Shader("assets/shaders/test.vert","assets/shaders/test.frag",transientStorage);
+    quadShader=new Shader("assets/shaders/quad.vert","assets/shaders/quad.frag",transientStorage);
 }
 
 void gl_render(){
@@ -139,14 +72,14 @@ void gl_render(){
 }
 
 bool gl_load_texture(const char* path){
-    //Load texture
+    //Load texture from file
     int width,height,channels;
     char* data=(char*)stbi_load(path,&width,&height,&channels,4);
     if (!data){
         SM_ASSERT(false,"Failed to load texture");
         return false;
     }
-    //Set the texture 
+    //Turn it into openGL texture
     glGenTextures(1,&glContext.textureID);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D,glContext.textureID);
@@ -163,12 +96,52 @@ bool gl_load_texture(const char* path){
                 GL_RGBA,
                 GL_UNSIGNED_BYTE,
                 data);
-    //Free memory
+    //Clean up
     stbi_image_free(data);
     return true;
 }
 
-
+bool gl_init(BumpAllocator* transientStorage){
+    load_gl_functions();
+    glDebugMessageCallback(&gl_debug_callback,nullptr);
+    gl_shaders_init(transientStorage);
+    //Enables
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_FRAMEBUFFER_SRGB);
+    glEnable(GL_DEPTH_TEST);
+    //Generate Vertex Array Object
+    GLuint VAO;
+    glGenVertexArrays(1,&VAO);
+    glBindVertexArray(VAO);
+    //Load Shaders and Textures
+    quadShader->use();
+    glContext.programID=quadShader->programID;
+    gl_load_texture(TEXTURE_PATH_LOADING);
+    SM_TRACE("test 4");
+    //Transform storage buffer
+    {
+        glGenBuffers(1,&glContext.transformSBOID);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,glContext.transformSBOID);
+        glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(Transform)*MAX_TRANSFORMS,renderData->transforms,GL_DYNAMIC_DRAW);
+    }
+    //Uniforms
+    {
+        glContext.screenSizeID=glGetUniformLocation(glContext.programID,"screenSize");
+    }
+    //Depth testing
+    glDepthFunc(GL_GREATER);
+    //Set the program to use
+    glUseProgram(glContext.programID);
+    SM_TRACE("test 5");
+    //Render
+    glClearColor(0.0f/255.0f,0.0f/255.0f,0.0f/255.0f,1);
+    glClearDepth(0.0f);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glViewport(0,0,input->screenSizeX,input->screenSizeY);
+    glDrawArrays(GL_TRIANGLES,0,6);
+    return true;
+}
 
 
 
