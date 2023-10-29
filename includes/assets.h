@@ -68,7 +68,7 @@ public:
     //The program ID
     unsigned int textureID;
     //Constructor reads and builds the shader
-    Texture(char* texturePath,BumpAllocator* bumpAllocator);
+    Texture(char* texturePath,BumpAllocator* bumpAllocator,unsigned int internalFormat);
     //Use/activate the shader
     void use();
     int width,height,nrChannels;

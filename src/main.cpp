@@ -40,8 +40,8 @@ int main(){
     SM_TRACE("Loading LTR_Engine");
     //Memory allocation
     SM_TRACE("Allocating memory");
-    BumpAllocator transientStorage=make_bump_allocator(MB(100));
-    BumpAllocator persistentStorage=make_bump_allocator(MB(100));
+    BumpAllocator transientStorage=make_bump_allocator(MB(500));
+    BumpAllocator persistentStorage=make_bump_allocator(MB(500));
     input=(Input*)bump_alloc(&persistentStorage,sizeof(Input));
     SM_ASSERT(input,"Failed to allocate input");
     renderData=(RenderData*)bump_alloc(&persistentStorage,sizeof(RenderData));

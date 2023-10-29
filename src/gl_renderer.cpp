@@ -100,19 +100,22 @@ void gl_shaders_init(BumpAllocator* transientStorage){
     quadShader=new Shader("assets/shaders/quad.vert","assets/shaders/quad.frag",transientStorage);
 }
 void gl_textures_init(BumpAllocator* transientStorage){
-    ltrTexture=new Texture("assets/textures/LTR.png",transientStorage);
-    faridTexture=new Texture("assets/textures/farid.png",transientStorage);
-    woodTexture=new Texture("assets/textures/container.jpg",transientStorage);
-    awesomeTexture=new Texture("assets/textures/awesomeface.png",transientStorage);
+    ltrTexture=new Texture("assets/textures/LTR.png",transientStorage,GL_RGBA);
+    faridTexture=new Texture("assets/textures/farid.png",transientStorage,GL_RGBA);
+    woodTexture=new Texture("assets/textures/container.jpg",transientStorage,GL_RGB);
+    awesomeTexture=new Texture("assets/textures/awesomeface.png",transientStorage,GL_RGBA);
 }
 
 void gl_render(){
     glViewport(0,0,input->screenSizeX,input->screenSizeY);
-    //Vec2 screenSize={(float)input->screenSizeX,(float)input->screenSizeY};
-    //glUniform2fv(glContext.screenSizeID,1,&screenSize.x);
     gl_clear();
+    glActiveTexture(GL_TEXTURE0);
     faridTexture->use();
+    glActiveTexture(GL_TEXTURE1);
+    ltrTexture->use();
     testShader->use();
+    testShader->setInt("textureUsed1",0);
+    testShader->setInt("textureUsed2",1);
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES,sizeof(rectangle_indices),GL_UNSIGNED_INT,0);
 }
