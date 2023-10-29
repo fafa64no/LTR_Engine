@@ -2,6 +2,10 @@
 #include "LTR_Engine_lib.h"
 #include <sstream>
 #include <iostream>
+#include <glm/glm.hpp>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 // ############################################################################
 //                            Assets Constants
@@ -57,6 +61,17 @@ public:
     void setBool(const std::string &name,bool value) const;
     void setInt(const std::string &name,int value) const;
     void setFloat(const std::string &name,float value) const;
+    //void setMat4(const std::string &name,glm::mat4 value) const;
+};
+class Texture{
+public:
+    //The program ID
+    unsigned int textureID;
+    //Constructor reads and builds the shader
+    Texture(char* texturePath,BumpAllocator* bumpAllocator);
+    //Use/activate the shader
+    void use();
+    int width,height,nrChannels;
 };
 
 

@@ -1,6 +1,9 @@
 #pragma once
 #include "LTR_Engine_lib.h"
 #include "glcorearb.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 // #############################################################################
 //                           OpenGL Function Pointers

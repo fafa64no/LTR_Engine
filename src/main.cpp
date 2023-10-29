@@ -43,13 +43,9 @@ int main(){
     BumpAllocator transientStorage=make_bump_allocator(MB(100));
     BumpAllocator persistentStorage=make_bump_allocator(MB(100));
     input=(Input*)bump_alloc(&persistentStorage,sizeof(Input));
-    if (!input){
-        SM_ERROR("Failed to allocate input");
-    }
+    SM_ASSERT(input,"Failed to allocate input");
     renderData=(RenderData*)bump_alloc(&persistentStorage,sizeof(RenderData));
-    if (!renderData){
-        SM_ERROR("Failed to allocate renderData");
-    }
+    SM_ASSERT(renderData,"Failed to allocate renderData");
     //Window creation
     SM_TRACE("Creating window");
     platform_create_window(1200,700,"LTR Engine");
@@ -72,6 +68,7 @@ int main(){
         gl_render();
         platform_swap_buffers();
         transientStorage.used=0;
+        Sleep(16);
     }
     SM_TRACE("Out");
     return 0;

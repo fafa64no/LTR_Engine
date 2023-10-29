@@ -1,14 +1,50 @@
 #include "gl_renderer.h"
 #include "LTR_Engine_lib.h"
 #include "assets.h"
+#include "input.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+
 
 // ############################################################################
 //                            OpenGL Constants
 // ############################################################################
 const char* TEXTURE_PATH_LOADING="assets/textures/LTR.png";
+float cube_vertices[]={
+    //Positions              //Colors                //Texture position    
+    -0.5f,  -0.5f,  -0.5f,   1.0f,   0.0f,   0.0f,   1.0f,   1.0f,
+    -0.5f,  -0.5f,   0.5f,   1.0f,   1.0f,   0.0f,   1.0f,   0.0f,
+    -0.5f,   0.5f,  -0.5f,   1.0f,   1.0f,   1.0f,   0.0f,   0.0f,
+    -0.5f,   0.5f,   0.5f,   0.0f,   1.0f,   1.0f,   0.0f,   1.0f,
+     0.5f,  -0.5f,  -0.5f,   0.0f,   0.0f,   1.0f,   1.0f,   1.0f,
+     0.5f,  -0.5f,   0.5f,   0.0f,   0.0f,   0.0f,   1.0f,   0.0f,
+     0.5f,   0.5f,  -0.5f,   1.0f,   0.0f,   1.0f,   0.0f,   0.0f,
+     0.5f,   0.5f,   0.5f,   1.0f,   1.0f,   0.0f,   0.0f,   1.0f
+};
+unsigned int cube_indices[]={
+    0,1,2,
+    1,2,3,
+    4,5,6,
+    5,6,7,
+    1,3,5,
+    3,5,7,
+    0,2,4,
+    2,4,6,
+    0,1,4,
+    1,4,5,
+    2,3,6,
+    3,6,7
+};
+float rectangle_vertices[] = {
+    // positions          // colors           // texture coords
+    0.5f,  0.5f, 0.0f,    1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+    0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
+};
+unsigned int rectangle_indices[] = {  
+    0, 1, 3, // first triangle
+    1, 2, 3  // second triangle
+};
 
 // ############################################################################
 //                            OpenGL Structs
@@ -26,6 +62,11 @@ struct GLContext{
 static GLContext glContext;
 static Shader* testShader;
 static Shader* quadShader;
+static Texture* ltrTexture;
+static Texture* faridTexture;
+static Texture* woodTexture;
+static Texture* awesomeTexture;
+static unsigned int VBO, VAO, EBO;
 
 // ############################################################################
 //                            OpenGL Functions
@@ -41,105 +82,72 @@ static void APIENTRY gl_debug_callback(
     if (severity==GL_DEBUG_SEVERITY_LOW||
         severity==GL_DEBUG_SEVERITY_MEDIUM||
         severity==GL_DEBUG_SEVERITY_HIGH){
-        SM_ASSERT(false,"OpenGL Error: %s",message);
+        SM_TRACE("gl_debug_callback:");
+        SM_TRACE((char*)message);
+        SM_ASSERT(false,"OpenGL error, exiting for safety...");
     }else{
         SM_TRACE((char*)message);
     }
 }
 
+void gl_clear(){
+    glClearColor(0.1f,0.1f,0.12f,1);
+    glClearDepth(0.0f);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+}
 void gl_shaders_init(BumpAllocator* transientStorage){
-    //Shaders import
     testShader=new Shader("assets/shaders/test.vert","assets/shaders/test.frag",transientStorage);
     quadShader=new Shader("assets/shaders/quad.vert","assets/shaders/quad.frag",transientStorage);
 }
+void gl_textures_init(BumpAllocator* transientStorage){
+    ltrTexture=new Texture("assets/textures/LTR.png",transientStorage);
+    faridTexture=new Texture("assets/textures/farid.png",transientStorage);
+    woodTexture=new Texture("assets/textures/container.jpg",transientStorage);
+    awesomeTexture=new Texture("assets/textures/awesomeface.png",transientStorage);
+}
 
 void gl_render(){
-    //Reset window
-    glClearColor(0,0,0,1);
-    glClearDepth(0.0f);
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glViewport(0,0,input->screenSizeX,input->screenSizeY);
-    //Copy screen size to the GPU
-    Vec2 screenSize={(float)input->screenSizeX,(float)input->screenSizeY};
-    glUniform2fv(glContext.screenSizeID,1,&screenSize.x);
-    //Opaque Objects
-    {
-        glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(Transform)* MAX_TRANSFORMS,renderData->transforms,GL_DYNAMIC_DRAW);
-        glDrawArraysInstanced(GL_TRIANGLES,0,6,renderData->transformCount);
-        //Reset
-        renderData->transformCount=0;
-    }
+    //Vec2 screenSize={(float)input->screenSizeX,(float)input->screenSizeY};
+    //glUniform2fv(glContext.screenSizeID,1,&screenSize.x);
+    gl_clear();
+    faridTexture->use();
+    testShader->use();
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES,sizeof(rectangle_indices),GL_UNSIGNED_INT,0);
 }
 
-bool gl_load_texture(const char* path){
-    //Load texture from file
-    int width,height,channels;
-    char* data=(char*)stbi_load(path,&width,&height,&channels,4);
-    if (!data){
-        SM_ASSERT(false,"Failed to load texture");
-        return false;
-    }
-    //Turn it into openGL texture
-    glGenTextures(1,&glContext.textureID);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D,glContext.textureID);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-    glTexImage2D(
-                GL_TEXTURE_2D,
-                0,
-                GL_SRGB8_ALPHA8,
-                width,height,
-                0,
-                GL_RGBA,
-                GL_UNSIGNED_BYTE,
-                data);
-    //Clean up
-    stbi_image_free(data);
-    return true;
-}
 
 bool gl_init(BumpAllocator* transientStorage){
     load_gl_functions();
     glDebugMessageCallback(&gl_debug_callback,nullptr);
-    gl_shaders_init(transientStorage);
-    //Enables
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_FRAMEBUFFER_SRGB);
-    glEnable(GL_DEPTH_TEST);
-    //Generate Vertex Array Object
-    GLuint VAO;
+    //Init Shaders
+    gl_shaders_init(transientStorage);
+
+    //Generate VAO, VBO and EBO
     glGenVertexArrays(1,&VAO);
+    glGenBuffers(1,&VBO);
+    glGenBuffers(1,&EBO);
     glBindVertexArray(VAO);
-    //Load Shaders and Textures
-    quadShader->use();
-    glContext.programID=quadShader->programID;
-    gl_load_texture(TEXTURE_PATH_LOADING);
-    SM_TRACE("test 4");
-    //Transform storage buffer
-    {
-        glGenBuffers(1,&glContext.transformSBOID);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,glContext.transformSBOID);
-        glBufferData(GL_SHADER_STORAGE_BUFFER,sizeof(Transform)*MAX_TRANSFORMS,renderData->transforms,GL_DYNAMIC_DRAW);
-    }
-    //Uniforms
-    {
-        glContext.screenSizeID=glGetUniformLocation(glContext.programID,"screenSize");
-    }
-    //Depth testing
-    glDepthFunc(GL_GREATER);
-    //Set the program to use
-    glUseProgram(glContext.programID);
-    SM_TRACE("test 5");
-    //Render
-    glClearColor(0.0f/255.0f,0.0f/255.0f,0.0f/255.0f,1);
-    glClearDepth(0.0f);
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    glViewport(0,0,input->screenSizeX,input->screenSizeY);
-    glDrawArrays(GL_TRIANGLES,0,6);
+
+    glBindBuffer(GL_ARRAY_BUFFER,VBO);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(rectangle_vertices),rectangle_vertices,GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(rectangle_indices),rectangle_indices,GL_DYNAMIC_DRAW);
+
+    //Vertex attribs
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(float),(void*)0);
+    glEnableVertexAttribArray(0); 
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8*sizeof(float),(void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1); 
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,8*sizeof(float),(void*)(6*sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    //Load textures
+    gl_textures_init(transientStorage);
+
     return true;
 }
 

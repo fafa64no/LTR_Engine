@@ -86,8 +86,8 @@ void _log(char* prefix,char* msg,TextColor textColor, Args... args){
 #define SM_ASSERT(x,msg,...){           \
     if (!(x)){                          \
         SM_ERROR(msg,##__VA_ARGS__);    \
-        DEBUG_BREAK();                  \
         SM_ERROR("Assertion HIT");      \
+        DEBUG_BREAK();                  \
     }                                   \
 }
 
