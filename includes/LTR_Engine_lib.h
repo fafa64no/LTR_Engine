@@ -5,6 +5,9 @@
 #include <string>       //Used to get memset
 #include <stdlib.h>     //Used to get malloc
 #include <sys/stat.h>   //Used to get edit timestamp of files
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 // ############################################################################
 //                            Defines
@@ -22,6 +25,7 @@
 #define KB(x)((unsigned long long)1024*x)
 #define MB(x)((unsigned long long)1024*KB(x))
 #define GB(x)((unsigned long long)1024*MB(x))
+#define b8 char
 
 // ############################################################################
 //                            Logging
@@ -263,18 +267,6 @@ void init_debug_log_system(){
         outfile.close();
     }
 }
-
-// ############################################################################
-//                            Math stuff
-// ############################################################################
-struct Vec2{
-    float x;
-    float y;
-};
-struct IVec2{
-    int x;
-    int y;
-};
 
 
 

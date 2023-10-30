@@ -2,7 +2,6 @@
 #include "LTR_Engine_lib.h"
 #include <sstream>
 #include <iostream>
-#include <glm/glm.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -22,8 +21,8 @@ enum SpriteID{
     SPRITE_COUNT
 };
 struct Sprite{
-    IVec2 atlasOffset;
-    IVec2 spriteSize;
+    glm::ivec2 atlasOffset;
+    glm::ivec2 spriteSize;
     const char* spritePath;
 };
 
@@ -53,23 +52,22 @@ class Shader{
 public:
     //The program ID
     unsigned int programID;
-    //Constructor reads and builds the shader
+    //Constructor
     Shader(char* vertexPath,char* fragmentPath,BumpAllocator* bumpAllocator);
-    //Use/activate the shader
+    //Utility
     void use();
-    //Utility uniform functions
     void setBool(const std::string &name,bool value) const;
     void setInt(const std::string &name,int value) const;
     void setFloat(const std::string &name,float value) const;
-    //void setMat4(const std::string &name,glm::mat4 value) const;
+    void setMat4(const std::string &name,glm::mat4 value) const;
 };
 class Texture{
 public:
-    //The program ID
+    //The texture ID
     unsigned int textureID;
-    //Constructor reads and builds the shader
+    //Constructor
     Texture(char* texturePath,BumpAllocator* bumpAllocator,unsigned int internalFormat);
-    //Use/activate the shader
+    //Utility
     void use();
     int width,height,nrChannels;
 };

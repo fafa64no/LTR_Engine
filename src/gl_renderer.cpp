@@ -3,47 +3,21 @@
 #include "assets.h"
 #include "input.h"
 
-
-
 // ############################################################################
 //                            OpenGL Constants
 // ############################################################################
-const char* TEXTURE_PATH_LOADING="assets/textures/LTR.png";
-float cube_vertices[]={
-    //Positions              //Colors                //Texture position    
-    -0.5f,  -0.5f,  -0.5f,   1.0f,   0.0f,   0.0f,   1.0f,   1.0f,
-    -0.5f,  -0.5f,   0.5f,   1.0f,   1.0f,   0.0f,   1.0f,   0.0f,
-    -0.5f,   0.5f,  -0.5f,   1.0f,   1.0f,   1.0f,   0.0f,   0.0f,
-    -0.5f,   0.5f,   0.5f,   0.0f,   1.0f,   1.0f,   0.0f,   1.0f,
-     0.5f,  -0.5f,  -0.5f,   0.0f,   0.0f,   1.0f,   1.0f,   1.0f,
-     0.5f,  -0.5f,   0.5f,   0.0f,   0.0f,   0.0f,   1.0f,   0.0f,
-     0.5f,   0.5f,  -0.5f,   1.0f,   0.0f,   1.0f,   0.0f,   0.0f,
-     0.5f,   0.5f,   0.5f,   1.0f,   1.0f,   0.0f,   0.0f,   1.0f
-};
-unsigned int cube_indices[]={
-    0,1,2,
-    1,2,3,
-    4,5,6,
-    5,6,7,
-    1,3,5,
-    3,5,7,
-    0,2,4,
-    2,4,6,
-    0,1,4,
-    1,4,5,
-    2,3,6,
-    3,6,7
-};
-float rectangle_vertices[] = {
-    // positions          // colors           // texture coords
-    0.5f,  0.5f, 0.0f,    1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-    0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
-};
-unsigned int rectangle_indices[] = {  
-    0, 1, 3, // first triangle
-    1, 2, 3  // second triangle
+#include "test_models.h"
+const glm::vec3 cubePositions[] = {
+    glm::vec3( 0.0f,  0.0f,  0.0f), 
+    glm::vec3( 2.0f,  5.0f, -15.0f), 
+    glm::vec3(-1.5f, -2.2f, -2.5f),  
+    glm::vec3(-3.8f, -2.0f, -12.3f),  
+    glm::vec3( 2.4f, -0.4f, -3.5f),  
+    glm::vec3(-1.7f,  3.0f, -7.5f),  
+    glm::vec3( 1.3f, -2.0f, -2.5f),  
+    glm::vec3( 1.5f,  2.0f, -2.5f), 
+    glm::vec3( 1.5f,  0.2f, -1.5f), 
+    glm::vec3(-1.3f,  1.0f, -1.5f)  
 };
 
 // ############################################################################
@@ -92,7 +66,6 @@ static void APIENTRY gl_debug_callback(
 
 void gl_clear(){
     glClearColor(0.1f,0.1f,0.12f,1);
-    glClearDepth(0.0f);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 }
 void gl_shaders_init(BumpAllocator* transientStorage){
@@ -107,17 +80,45 @@ void gl_textures_init(BumpAllocator* transientStorage){
 }
 
 void gl_render(){
-    glViewport(0,0,input->screenSizeX,input->screenSizeY);
+    glViewport(0,0,input->screenSize.x,input->screenSize.y);
     gl_clear();
+
     glActiveTexture(GL_TEXTURE0);
     faridTexture->use();
     glActiveTexture(GL_TEXTURE1);
-    ltrTexture->use();
+    awesomeTexture->use();
+
     testShader->use();
     testShader->setInt("textureUsed1",0);
     testShader->setInt("textureUsed2",1);
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES,sizeof(rectangle_indices),GL_UNSIGNED_INT,0);
+
+    //Scene vars
+    static float modelAngle=0.0;
+    glm::vec3 transformPos=glm::vec3(0.0,0.0,2.5);
+
+    //View matrix
+    renderData->currentCamera->updateDir(input->mouseDir);
+    glm::mat4 viewMat=renderData->currentCamera->viewMat();
+
+    //Projection matrix
+    glm::mat4 projMat=glm::perspective(glm::radians(45.0f), (float)input->screenSize.x/(float)input->screenSize.y, 0.1f, 100.0f);
+
+    testShader->setMat4("view",viewMat);
+    testShader->setMat4("proj",projMat);
+
+    //Model matrix
+    for(unsigned int i=0;i<10;i++){
+        glm::mat4 modelMat=glm::mat4(1.0);
+        modelMat=glm::translate(modelMat, cubePositions[i]);
+        modelMat=glm::rotate(modelMat,glm::radians(modelAngle+i*20),glm::vec3(0.5, 1.0, 1.0));
+        modelMat=glm::scale(modelMat,glm::vec3(0.5, 0.5, 0.5));
+
+        testShader->setMat4("model",modelMat);
+
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES,sizeof(cube_indices),GL_UNSIGNED_INT,nullptr);
+    }
+    modelAngle+=5.5;
 }
 
 
@@ -126,6 +127,7 @@ bool gl_init(BumpAllocator* transientStorage){
     glDebugMessageCallback(&gl_debug_callback,nullptr);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEPTH_TEST);
     //Init Shaders
     gl_shaders_init(transientStorage);
 
@@ -136,9 +138,9 @@ bool gl_init(BumpAllocator* transientStorage){
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER,VBO);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(rectangle_vertices),rectangle_vertices,GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(cube_vertices),cube_vertices,GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(rectangle_indices),rectangle_indices,GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(cube_indices),cube_indices,GL_DYNAMIC_DRAW);
 
     //Vertex attribs
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(float),(void*)0);
@@ -150,6 +152,12 @@ bool gl_init(BumpAllocator* transientStorage){
 
     //Load textures
     gl_textures_init(transientStorage);
+
+    //Init camera
+    renderData->currentCamera=new Camera(
+        glm::vec3(0.0,0.0,0-3.0),
+        glm::vec3(1.0,0.0,0.0),
+        glm::vec3(0.0,1.0,0.0));
 
     return true;
 }

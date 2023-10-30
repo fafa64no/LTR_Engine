@@ -9,6 +9,8 @@
 #define GL_GLEXT_PROTOTYPES
 #include "glcorearb.h"
 
+static KeyCodeID KeyCodeLookupTable[KEY_COUNT];
+
 // ############################################################################
 //                            Game DLL header
 // ############################################################################
@@ -48,9 +50,8 @@ int main(){
     SM_ASSERT(renderData,"Failed to allocate renderData");
     //Window creation
     SM_TRACE("Creating window");
+    platform_fill_keycode_lookup_table();
     platform_create_window(1200,700,"LTR Engine");
-    input->screenSizeX=1200;
-    input->screenSizeY=700;
     //Libs and dlls
     SM_TRACE("Initialising OpenGL");
     gl_init(&transientStorage);
@@ -109,4 +110,5 @@ void reload_dll(BumpAllocator* transientStorage){
         SM_ASSERT(update_game_ptr,"Failed to load update_game function");
         lastEditTimestampGameDLL=currentTimestampGameDLL;
     }
+    SM_TRACE("All dlls loaded");
 }
