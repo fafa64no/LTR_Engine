@@ -1,5 +1,6 @@
 #include "LTR_Engine_lib.h"
 #include "platform.h"
+#include "game.h"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -20,7 +21,7 @@ LRESULT CALLBACK windows_window_callback(HWND window, UINT msg, WPARAM wParam, L
     switch (msg){
         //Check for window closed
         case WM_CLOSE:{
-            running=false;
+            gameData->is_running=false;
             break;
         }
         //Check for window resized
@@ -160,7 +161,7 @@ bool platform_create_window(int width, int height, char* title){
             width+=borderRect.right-borderRect.left;
             height+=borderRect.bottom-borderRect.top;
         }
-         window=CreateWindowExA(
+        window=CreateWindowExA(
                             0,
                             title,
                             title,
@@ -252,12 +253,38 @@ void platform_update_window(){
         POINT point={};
         GetCursorPos(&point);
         ScreenToClient(window,&point);
-        if (true){
-            input->prevMousePos=input->mousePos;
-            input->mousePos=glm::ivec2(point.x,point.y);
-            //SetCursorPos(point.x,point.y);
-            input->mouseDir=input->mousePos-input->prevMousePos;
-            //input->mousePos=input->prevMousePos;
+        if (!gameData->is_paused){
+            //Hide cursor
+            while(ShowCursor(false)>=0);
+
+            //Get window corner positions
+            RECT windowRect;
+            GetWindowRect(window,&windowRect);
+
+            //Fix coordinates
+            int fix=23;
+            int dwStyle=WS_OVERLAPPEDWINDOW;
+            RECT actualPos={0,0,point.x,point.y+fix};
+            AdjustWindowRectEx(&actualPos,dwStyle,0,0);
+
+            //Get middle of window coordinates
+            glm::ivec2 middleOfWindow=glm::ivec2(
+                (windowRect.right-windowRect.left)/2,
+                (windowRect.bottom-windowRect.top)/2
+            );
+
+            //Get mouseDir
+            input->mouseDir=glm::ivec2(
+                actualPos.right,
+                actualPos.bottom
+            )-middleOfWindow;
+
+            //Place back mouse
+            SetCursorPos(windowRect.left+middleOfWindow.x,windowRect.top+middleOfWindow.y);
+        }else{
+            //Show cursor
+            while(ShowCursor(true)<=0);
+            input->mouseDir=glm::vec2(0,0);
         }
     }
 }

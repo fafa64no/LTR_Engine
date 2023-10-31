@@ -6,7 +6,3 @@ warnings="-Wno-writable-strings -Wno-format-security -Wno-deprecated-declaration
 includes="-Ithird_party -Ithird_party/Include -Isrc -Iincludes"
 
 clang++ $includes -g src/main.cpp -oLTR_Engine.exe $libs $warnings
-
-rm -f game_* 
-clang++ $includes -g "src/game.cpp" -shared -o game_$timestamp.dll $warnings
-mv game_$timestamp.dll game.dll

@@ -11,14 +11,18 @@
 // ############################################################################
 //                            Game Structs
 // ############################################################################
+struct GameData{
+    bool is_running;
+    bool is_paused;
+};
+static GameData* gameData;
 
 // ############################################################################
 //                            Game Functions
 // ############################################################################
-extern "C"{
-    EXPORT_FN void update_game(RenderData* renderDataIn,Input* inputIn);
-    EXPORT_FN void init_game(RenderData* renderDataIn,Input* inputIn);
-}
+void update_game();
+void init_game();
+
 
 
 

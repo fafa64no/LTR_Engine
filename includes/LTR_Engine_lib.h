@@ -243,7 +243,7 @@ bool append_file(const char* filePath,std::string buffer){
     return true;
 }
 void init_debug_log_system(){
-    srand(get_timestamp("game.dll"));
+    srand(get_timestamp("LTR_Engine.exe"));
     debug_instance_id=rand();
     {
         std::string strBuffer="";

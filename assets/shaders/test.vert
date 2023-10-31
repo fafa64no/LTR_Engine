@@ -9,9 +9,10 @@ out vec2 TexCoord;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
+uniform vec3 ambientLight;
 
 void main(){
     gl_Position=proj*view*model*vec4(vPos,1.0);
-    vertexColor=vColor;
+    vertexColor=vColor*ambientLight;
     TexCoord=vTexCoord;
 }
