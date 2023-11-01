@@ -21,13 +21,19 @@ void init_game(){
 
     gameData->is_running=true;
     gameData->is_paused=false;
+    gameData->can_move_mouse=false;
+    gameData->can_move_mouse_toggled;
     gameData->currentZone=testZone;
 }
 void update_game(){
     //Exit
     if(key_pressed_this_frame(input->keyBindings[EXIT_KEY]))gameData->is_running=false;
     //Pause
-    if(key_pressed_this_frame(input->keyBindings[PAUSE_KEY]))gameData->is_paused=true-gameData->is_paused;
+    if(key_pressed_this_frame(input->keyBindings[PAUSE_KEY])){
+        gameData->can_move_mouse=true-gameData->can_move_mouse;
+        gameData->is_paused=true-gameData->is_paused;
+        gameData->can_move_mouse_toggled=true;
+    }
     if(!gameData->is_paused){
         //Movement
         if(key_is_down(input->keyBindings[FORWARD_KEY]))renderData->currentCamera->camPos+=playerSpeed*renderData->currentCamera->camFront;

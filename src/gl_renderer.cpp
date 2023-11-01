@@ -4,6 +4,7 @@
 #include "input.h"
 #include "zone.h"
 #include "game.h"
+#include "materials.h"
 
 // ############################################################################
 //                            OpenGL Constants
@@ -93,11 +94,18 @@ void gl_render_3D_layer(glm::mat4 viewMat,glm::mat4 projMat){
     testShader->setInt("textureUsed1",0);
     testShader->setInt("textureUsed2",1);
 
+    testShader->setVec3("viewPos",renderData->currentCamera->camPos);
+
     testShader->setVec3("ambientLight",gameData->currentZone->ambientLight);
     testShader->setVec3("lightPos",glm::vec3(1.0,1.0,1.0));
     testShader->setVec3("diffuseLightColor",glm::vec3(1.0,1.0,1.0));
-    testShader->setFloat("diffuseLightStrength",1.3);
-    testShader->setFloat("diffuseLightRange",5.0);
+    testShader->setFloat("diffuseLightStrength",1.3f);
+    testShader->setFloat("diffuseLightRange",5.0f);
+
+    testShader->setVec3("material.ambient",metal.ambient);
+    testShader->setVec3("material.diffuse",metal.diffuse);
+    testShader->setVec3("material.specular",metal.specular);
+    testShader->setInt("material.shininess",metal.shininess);
 
     //Scene vars
     static float modelAngle=0.0;
@@ -113,7 +121,7 @@ void gl_render_3D_layer(glm::mat4 viewMat,glm::mat4 projMat){
 
         testShader->setMat4("model",modelMat);
 
-        glm::mat4 normalMat=glm::transpose(glm::inverse(modelMat));
+        glm::mat4 normalMat=glm::transpose(glm::inverse(viewMat*modelMat));
         testShader->setMat4("normalMat",normalMat);
 
         glBindVertexArray(cubes_VAO);
@@ -121,6 +129,10 @@ void gl_render_3D_layer(glm::mat4 viewMat,glm::mat4 projMat){
     }
     if(!gameData->is_paused)modelAngle+=0.5;
     //Ground model matrix
+    glActiveTexture(GL_TEXTURE0);
+    woodTexture->use();
+    glActiveTexture(GL_TEXTURE1);
+    awesomeTexture->use();
     glm::mat4 modelMat=glm::mat4(1.0);
     modelMat=glm::translate(modelMat,glm::vec3(0.0,-3.0,-5.0));
     modelMat=glm::scale(modelMat,glm::vec3(20.0,0.5,20.0));
@@ -185,8 +197,9 @@ bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEPTH_TEST);
-    //Init Shaders
+    //Init Shaders and Materials
     gl_shaders_init(persistentStorage);
+    gl_materials_init();
 
     //Generate VAO, VBO and EBO for cubes
     glGenVertexArrays(1,&cubes_VAO);
@@ -230,7 +243,6 @@ bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
         glm::vec3(0.0,0.0,0-3.0),
         glm::vec3(1.0,0.0,0.0),
         glm::vec3(0.0,1.0,0.0));
-
     return true;
 }
 

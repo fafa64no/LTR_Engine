@@ -253,7 +253,7 @@ void platform_update_window(){
         POINT point={};
         GetCursorPos(&point);
         ScreenToClient(window,&point);
-        if (!gameData->is_paused){
+        if (!gameData->can_move_mouse){
             //Hide cursor
             while(ShowCursor(false)>=0);
 
@@ -273,11 +273,15 @@ void platform_update_window(){
                 (windowRect.bottom-windowRect.top)/2
             );
 
-            //Get mouseDir
-            input->mouseDir=glm::ivec2(
-                actualPos.right,
-                actualPos.bottom
-            )-middleOfWindow;
+            //mouseDir
+            if(gameData->can_move_mouse_toggled){
+                gameData->can_move_mouse_toggled=false;
+            }else{
+                input->mouseDir=glm::ivec2(
+                    actualPos.right,
+                    actualPos.bottom
+                )-middleOfWindow;
+            }
 
             //Place back mouse
             SetCursorPos(windowRect.left+middleOfWindow.x,windowRect.top+middleOfWindow.y);

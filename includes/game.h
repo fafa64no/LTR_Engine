@@ -11,6 +11,8 @@
 struct GameData{
     bool is_running;
     bool is_paused;
+    bool can_move_mouse;
+    bool can_move_mouse_toggled;
     Zone* currentZone;
 };
 static GameData* gameData;
