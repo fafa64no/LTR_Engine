@@ -1,5 +1,6 @@
 #include "game.h"
 #include "assets.h"
+#include "zone.h"
 
 
 // ############################################################################
@@ -16,8 +17,11 @@ static float playerSpeed=0.1f;
 // ############################################################################
 void init_game(){
     reset_key_bindings(input);
+    init_zones();
+
     gameData->is_running=true;
     gameData->is_paused=false;
+    gameData->currentZone=testZone;
 }
 void update_game(){
     //Exit

@@ -3,6 +3,7 @@
 #include "input.h"
 #include "assets.h"
 #include "game.h"
+#include "zone.h"
 
 #include "render_interface.h"
 #define APIENTRY
@@ -33,7 +34,7 @@ int main(){
     
     //Memory allocation
     SM_TRACE("Allocating memory");
-    BumpAllocator transientStorage=make_bump_allocator(MB(500));
+    BumpAllocator transientStorage=make_bump_allocator(MB(20));
     BumpAllocator persistentStorage=make_bump_allocator(MB(500));
 
     input=(Input*)bump_alloc(&persistentStorage,sizeof(Input));
@@ -43,6 +44,8 @@ int main(){
     gameData=(GameData*)bump_alloc(&persistentStorage,sizeof(GameData));
     SM_ASSERT(gameData,"Failed to allocate renderData");
 
+    init_zones_memory(&persistentStorage);
+
     //Window creation
     SM_TRACE("Creating window");
     platform_fill_keycode_lookup_table();
@@ -50,7 +53,7 @@ int main(){
 
     //Libs
     SM_TRACE("Initialising OpenGL");
-    gl_init(&transientStorage);
+    gl_init(&transientStorage,&persistentStorage);
     platform_swap_buffers();
 
     //Game initialisation

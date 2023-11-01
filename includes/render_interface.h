@@ -8,17 +8,12 @@
 // ############################################################################
 //                            Render Constants
 // ############################################################################
-constexpr int MAX_TRANSFORMS=1000;
+constexpr int MAX_2D_TRANSFORMS=1000;
+constexpr int MAX_3D_TRANSFORMS=1000;
 
 // ############################################################################
 //                            Render Structs and Classes
 // ############################################################################
-struct Transform{
-    glm::ivec2 atlasOffset;
-    glm::ivec2 spriteSize;
-    glm::ivec2 pos;
-    glm::ivec2 size;
-};
 class Camera{
 public:
     Camera(glm::vec3 camPos,glm::vec3 camFront,glm::vec3 camUp);
@@ -34,8 +29,8 @@ private:
 };
 struct RenderData{
     int transformCount;
-    Transform transforms[MAX_TRANSFORMS];
     Camera* currentCamera;
+    Transform2D transforms_2D[MAX_2D_TRANSFORMS];
 };
 
 static RenderData* renderData;
@@ -47,15 +42,6 @@ static RenderData* renderData;
 // ############################################################################
 //                            Render Functions
 // ############################################################################
-void draw_sprite(SpriteID spriteID,glm::vec2 pos,glm::vec2 size){
-    Sprite sprite=get_sprite(spriteID);
-    Transform transform={};
-    transform.pos=pos;
-    transform.size=size;
-    transform.atlasOffset=sprite.atlasOffset;
-    transform.spriteSize=sprite.spriteSize;
-    renderData->transforms[renderData->transformCount++]=transform;
-}
 
 // ############################################################################
 //                            Camera Functions
