@@ -6,14 +6,12 @@
 // ############################################################################
 Shader::Shader(char* vertexPath, char* fragmentPath,BumpAllocator* bumpAllocator){
 // 1. retrieve the vertex/fragment source code from filePath
-    SM_TRACE("Building shader");
     int vShaderFileSize,fShaderFileSize;
     const char* vShaderCode=read_file(vertexPath,&vShaderFileSize,bumpAllocator);
     const char* fShaderCode=read_file(fragmentPath,&fShaderFileSize,bumpAllocator);
     SM_ASSERT(vShaderCode,"Failed to read shader: %s",vertexPath);
     SM_ASSERT(fShaderCode,"Failed to read shader: %s",fragmentPath);
 // 2. compile shaders
-    SM_TRACE("Compiling shader");
     unsigned int vertexShader,fragmentShader;
     int success;
 
@@ -45,7 +43,6 @@ Shader::Shader(char* vertexPath, char* fragmentPath,BumpAllocator* bumpAllocator
     //Clean up
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
-    SM_TRACE("Shader ready");
 }
 void Shader::use(){ 
     glUseProgram(programID);
@@ -66,7 +63,6 @@ void Shader::setBool(const std::string &name,bool value) const{
 //                            Texture Functions
 // ############################################################################
 Texture::Texture(char* texturePath,BumpAllocator* bumpAllocator,unsigned int internalFormat){
-    SM_TRACE("Loading texture");
     glGenTextures(1,&textureID);
     glBindTexture(GL_TEXTURE_2D,textureID);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
@@ -80,7 +76,6 @@ Texture::Texture(char* texturePath,BumpAllocator* bumpAllocator,unsigned int int
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, internalFormat, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
-    SM_TRACE("Texture successfully loaded");
 }
 void Texture::use(){
     glBindTexture(GL_TEXTURE_2D,textureID);
@@ -119,6 +114,9 @@ bool Transform2D::removeChild(Transform2D* child){
     return false;
 }
 
-// ############################################################################
-//                            Transform3D Functions
-// ############################################################################
+
+
+
+
+
+

@@ -94,13 +94,13 @@ void gl_render_3D_layer(glm::mat4 viewMat,glm::mat4 projMat){
     testShader->setInt("textureUsed1",0);
     testShader->setInt("textureUsed2",1);
 
-    testShader->setVec3("viewPos",renderData->currentCamera->camPos);
+    testShader->setVec3("viewPos",RenderInterface::renderData->currentCamera->camPos);
 
     testShader->setVec3("ambientLight",gameData->currentZone->ambientLight);
     testShader->setVec3("lightPos",glm::vec3(1.0,1.0,1.0));
     testShader->setVec3("diffuseLightColor",glm::vec3(1.0,1.0,1.0));
     testShader->setFloat("diffuseLightStrength",1.3f);
-    testShader->setFloat("diffuseLightRange",5.0f);
+    testShader->setFloat("diffuseLightRange",15.0f);
 
     testShader->setVec3("material.ambient",metal.ambient);
     testShader->setVec3("material.diffuse",metal.diffuse);
@@ -134,16 +134,22 @@ void gl_render_3D_layer(glm::mat4 viewMat,glm::mat4 projMat){
     glActiveTexture(GL_TEXTURE1);
     awesomeTexture->use();
     glm::mat4 modelMat=glm::mat4(1.0);
-    modelMat=glm::translate(modelMat,glm::vec3(0.0,-3.0,-5.0));
-    modelMat=glm::scale(modelMat,glm::vec3(20.0,0.5,20.0));
+    modelMat=glm::translate(modelMat,glm::vec3(0.0,-13.0,-5.0));
+    modelMat=glm::scale(modelMat,glm::vec3(20.0,20.0,20.0));
 
     testShader->setMat4("model",modelMat);
 
-    glm::mat4 normalMat=glm::transpose(glm::inverse(modelMat));
+    glm::mat4 normalMat=glm::transpose(glm::inverse(viewMat*modelMat));
     testShader->setMat4("normalMat",normalMat);
 
     glBindVertexArray(cubes_VAO);
     glDrawElements(GL_TRIANGLES,sizeof(cube_indices),GL_UNSIGNED_INT,nullptr);
+
+    glActiveTexture(GL_TEXTURE0);
+    woodTexture->use();
+    glActiveTexture(GL_TEXTURE1);
+    awesomeTexture->use();
+    RenderInterface::testScene->Draw(*testShader);
 }
 // ############################################################################
 void gl_render_3d_lights(glm::mat4 viewMat,glm::mat4 projMat){
@@ -166,8 +172,8 @@ void gl_render(){
     gl_clear();
 
     //View matrix
-    renderData->currentCamera->updateDir(input->mouseDir);
-    glm::mat4 viewMat=renderData->currentCamera->viewMat();
+    RenderInterface::renderData->currentCamera->updateDir(input->mouseDir);
+    glm::mat4 viewMat=RenderInterface::renderData->currentCamera->viewMat();
     //Projection matrix
     glm::mat4 projMat=glm::perspective(glm::radians(45.0f), (float)input->screenSize.x/(float)input->screenSize.y, 0.1f, 100.0f);
 
@@ -239,18 +245,10 @@ bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     gl_textures_init(persistentStorage);
 
     //Init camera
-    renderData->currentCamera=new Camera(
+    RenderInterface::renderData->currentCamera=new RenderInterface::Camera(
         glm::vec3(0.0,0.0,0-3.0),
         glm::vec3(1.0,0.0,0.0),
         glm::vec3(0.0,1.0,0.0));
     return true;
 }
-
-
-
-
-
-
-
-
 

@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <vector>
 
 // ############################################################################
 //                            Defines
@@ -37,55 +38,18 @@ bool append_file(const char* filePath,std::string buffer);
 void debug_log(std::string msg){
     append_file(debug_log_path,msg);
 }
-enum TextColor{
-    TEXT_COLOR_BLACK,
-    TEXT_COLOR_RED,
-    TEXT_COLOR_GREEN,
-    TEXT_COLOR_YELLOW,
-    TEXT_COLOR_BLUE,
-    TEXT_COLOR_MAGENTA,
-    TEXT_COLOR_CYAN,
-    TEXT_COLOR_WHITE,
-    TEXT_COLOR_BRIGHT_BLACK,
-    TEXT_COLOR_BRIGHT_RED,
-    TEXT_COLOR_BRIGHT_GREEN,
-    TEXT_COLOR_BRIGHT_YELLOW,
-    TEXT_COLOR_BRIGHT_BLUE,
-    TEXT_COLOR_BRIGHT_MAGENTA,
-    TEXT_COLOR_BRIGHT_CYAN,
-    TEXT_COLOR_BRIGHT_WHITE,
-    TEXT_COLOR_COUNT
-};
 template <typename ...Args>
-void _log(char* prefix,char* msg,TextColor textColor, Args... args){
-    static char* TextColorTable[TEXT_COLOR_COUNT]={
-        "\x1b[30m",//TEXT_COLOR_BLACK
-        "\x1b[31m",//TEXT_COLOR_RED
-        "\x1b[32m",//TEXT_COLOR_GREEN 
-        "\x1b[33m",//TEXT_COLOR_YELLOW 
-        "\x1b[34m",//TEXT_COLOR_BLUE 
-        "\x1b[35m",//TEXT_COLOR_MAGENTA 
-        "\x1b[36m",//TEXT_COLOR_CYAN 
-        "\x1b[37m",//TEXT_COLOR_WHITE 
-        "\x1b[90m",//TEXT_COLOR_BRIGHT_BLACK
-        "\x1b[91m",//TEXT_COLOR_BRIGHT_RED
-        "\x1b[92m",//TEXT_COLOR_BRIGHT_GREEN 
-        "\x1b[93m",//TEXT_COLOR_BRIGHT_YELLOW 
-        "\x1b[94m",//TEXT_COLOR_BRIGHT_BLUE 
-        "\x1b[95m",//TEXT_COLOR_BRIGHT_MAGENTA 
-        "\x1b[96m",//TEXT_COLOR_BRIGHT_CYAN 
-        "\x1b[97m",//TEXT_COLOR_BRIGHT_WHITE 
-    };
+void _log(char* prefix,char* msg,Args... args){
     char formatBuffer[8192]={};
-    sprintf(formatBuffer,"%s %s %s \033[0m",TextColorTable[textColor],prefix,msg);
+    sprintf(formatBuffer,"%s %s",prefix,msg);
     char textBuffer[8192]={};
     sprintf(textBuffer,formatBuffer,args...);
     puts(textBuffer);
 }
 
-#define SM_TRACE(msg,...){_log("TRACE: ",msg,TEXT_COLOR_GREEN,##__VA_ARGS__);debug_log((std::string)msg);}
-#define SM_WARN(msg,...){_log("WARN: ",msg,TEXT_COLOR_YELLOW,##__VA_ARGS__);debug_log((std::string)msg);}
-#define SM_ERROR(msg,...){_log("ERROR: ",msg,TEXT_COLOR_RED,##__VA_ARGS__);debug_log((std::string)msg);}
+#define SM_TRACE(msg,...){_log("TRACE: ",msg,##__VA_ARGS__);debug_log((std::string)msg);}
+#define SM_WARN(msg,...){_log("WARN: ",msg,##__VA_ARGS__);debug_log((std::string)msg);}
+#define SM_ERROR(msg,...){_log("ERROR: ",msg,##__VA_ARGS__);debug_log((std::string)msg);}
 
 #define SM_ASSERT(x,msg,...){           \
     if (!(x)){                          \
@@ -93,6 +57,58 @@ void _log(char* prefix,char* msg,TextColor textColor, Args... args){
         SM_ERROR("Assertion HIT");      \
         DEBUG_BREAK();                  \
     }                                   \
+}
+
+void disp_chars(char* start,int length){
+    char temp[256]{0};int i{0};
+    for(i;i<length;i++)temp[i]=start[i];
+    temp[i+1]='\0';
+    SM_TRACE(temp);
+}
+void disp_ascii_chars(char* start,int length){
+    for(int i=0;i<length;i+=4){
+        int value1=(*((int*)(&start[i])))&(0x000000ff);
+        int value2=(*((int*)(&start[i+1])))&(0x000000ff);
+        int value3=(*((int*)(&start[i+2])))&(0x000000ff);
+        int value4=(*((int*)(&start[i+3])))&(0x000000ff);
+        char hexString[9];
+        sprintf(hexString,"%02x%02x%02x%02x",value1,value2,value3,value4);
+        SM_TRACE(hexString);
+    }
+}
+
+// ############################################################################
+//                            Miscellaneous
+// ############################################################################
+float get_float_le(char* array){
+    char temp[sizeof(float)];
+    for(int i=0;i<sizeof(float);i++)temp[i]=array[sizeof(float)-i-1];
+    return *((float*)&temp[0]);
+}
+float get_float_be(char* array){
+    return *((float*)&array[0]);
+}
+
+unsigned short get_ushort_le(char* array){
+    char temp[sizeof(unsigned short)];
+    for(int i=0;i<sizeof(unsigned short);i++)temp[i]=array[sizeof(unsigned short)-i-1];
+    return *((unsigned short*)&temp[0]);
+}
+unsigned short get_ushort_be(char* array){
+    return *((unsigned short*)&array[0]);
+}
+
+unsigned int get_uint_fshort_le(char* array){
+    char temp[sizeof(unsigned int)];
+    for(int i=0;i<sizeof(unsigned int);i++)temp[i]=array[sizeof(unsigned int)-i-1];
+    return *((unsigned int*)&temp[0])&0x0000ffff;
+}
+unsigned int get_uint_fshort_be(char* array){
+    return (*((unsigned int*)&array[0]))&0x0000ffff;
+}
+
+void quatToMat(glm::mat4 &mat,glm::vec4 quat){
+    ///TODO convert quaternion to matrix
 }
 
 // ############################################################################
@@ -121,14 +137,72 @@ char* bump_alloc(BumpAllocator* bumpAllocator,size_t size){
         result=bumpAllocator->memory+bumpAllocator->used;
         bumpAllocator->used+=alignedSize;
     }else{
+        SM_TRACE("Tried to allocate :");
+        SM_TRACE((char*)std::to_string(size).c_str());
         SM_ASSERT(false,"BumpAllocator is full");
     }
     return result;
 }
 
 // ############################################################################
-//                            File I/O
+//                            File I/O 
 // ############################################################################
+enum SceneReadingState{
+    WAITING_FOR_JSON,
+    READING_JSON,
+
+    WAITING_FOR_BIN,
+    READING_BIN,
+
+    COUNTING_BUFFERS,
+    COUNTING_BUFFERVIEWS,
+    COUNTING_ACCESSORS,
+    COUNTING_MESHES,
+    COUNTING_NODES,
+
+    WAITING_FOR_END_OF_FILE,
+
+    MESH_READING_STATE_COUNT
+};
+enum AccessorType{
+    SCALAR,
+    VEC2,
+    VEC3,
+    VEC4,
+    UNKNOWN_ACCESSOR_TYPE,
+    ACCESSOR_TYPE_COUNT
+};
+
+struct Buffer{
+    unsigned int start;
+    unsigned int length;
+};
+struct BufferView{
+    Buffer* buffer;
+    unsigned int byteLength;
+    unsigned int byteOffset;
+    unsigned int byteStride;
+    unsigned int target;
+};
+struct Accessor{
+    BufferView* bufferView;
+    unsigned int componentType;
+    unsigned int count;
+    AccessorType type;
+};
+struct MeshConstructor{
+    Accessor* positions;
+    Accessor* normal;
+    Accessor* texcoord;
+    Accessor* indices;
+};
+struct MeshNodeConstructor{
+    MeshConstructor* meshConstructor;
+    glm::vec3 translation;
+    glm::vec4 rotation;
+    glm::vec3 scale;
+};
+
 long long get_timestamp(char* file){
     struct stat file_stat={};
     stat(file,&file_stat);
@@ -267,7 +341,507 @@ void init_debug_log_system(){
         outfile.close();
     }
 }
+// ############################################################################
+//                            GLB Stuff
+// ############################################################################
+unsigned int read_uint(std::vector<char> &buffer,int &i){
+    unsigned int result{0};
+    for(i;i<buffer.size();i++){
+        if(buffer[i]<='9'&&buffer[i]>='0'){
+            result*=10;
+            result+=buffer[i]&0x0f;
+        }else{
+            if(buffer[i]!=','&&buffer[i]!='}')disp_chars(&buffer[i],16);
+            if(buffer[i]=='}')i--;
+            break;
+        }
+    }
+    return result;
+}
+float read_float(std::vector<char> &buffer,int &i){
+    float result{0};
+    int afterDot=-0x7fff;
+    int sign=1;
+    for(i;i<buffer.size();i++){
+        if(buffer[i]<='9'&&buffer[i]>='0'){
+            result=(afterDot>0)?result+(buffer[i]&0x0f)*(float)pow(0.1,(double)afterDot):(float)10*result+(buffer[i]&0x0f);
+            afterDot++;
+        }else if(buffer[i]=='.'){
+            afterDot=1;
+        }else if(buffer[i]=='-'){
+            sign=-1;
+        }else{
+            break;
+        }
+    }
+    return sign*result;
+}
+glm::vec3 read_vec3(std::vector<char> &buffer,int &i){
+    glm::vec3 result;
+    for(int j=0;j<3;j++){
+        result[j]=read_float(buffer,i);
+        i++;
+    }
+    return result;
+}
+glm::vec4 read_vec4(std::vector<char> &buffer,int &i){
+    glm::vec4 result;
+    for(int j=0;j<4;j++){
+        result[j]=read_float(buffer,i);
+        i++;
+    }
+    return result;
+}
+AccessorType read_accessor_type(std::vector<char> &buffer,int &i){
+    if(strncmp(&buffer[i],"SCALAR",6)==0)return SCALAR;
+    else if(strncmp(&buffer[i],"VEC2",4)==0)return VEC2;
+    else if(strncmp(&buffer[i],"VEC3",4)==0)return VEC3;
+    else if(strncmp(&buffer[i],"VEC4",4)==0)return VEC4;
+    return UNKNOWN_ACCESSOR_TYPE;
+}
+void read_glb_file(char* filePath,std::vector<char>* &buffer,BumpAllocator* persistentStorage){
+    SM_TRACE("Loading glb scene...");
+    std::ifstream input(filePath,std::ios::binary);
+    buffer=new std::vector<char>(std::istreambuf_iterator<char>(input),{});
+    int fileSize=buffer->size();
+    SM_TRACE("\tFile size:");
+    SM_TRACE((char*)std::to_string(fileSize).c_str());
+}
 
+void get_glb_structure(BumpAllocator* bumpAllocator,
+            std::vector<char> &buffer,                  int &binStart,
+            Buffer* &buffers,                           int &buffersCount,
+            BufferView* &bufferViews,                   int &bufferViewsCount,
+            Accessor* &accessors,                       int &accessorCount,
+            MeshConstructor* &meshConstructors,         int &meshConstructorCount,
+            MeshNodeConstructor* &meshNodeConstructors, int &meshNodeConstructorCount){
+    int nodesPosInJSON{-1},meshesPosInJSON{-1},accessorsPosInJSON{-1},bufferViewsPosInJSON{-1},buffersPosInJSON{-1},incrementDepth{0};
+    SceneReadingState currentReadingState=WAITING_FOR_JSON;
+    buffersCount=0;
+    bufferViewsCount=0;
+    accessorCount=0;
+    meshConstructorCount=0;
+    meshNodeConstructorCount=0;
+    //Get JSON positions
+    for(int i=0;i<buffer.size();i++){
+        switch(currentReadingState){
+            case WAITING_FOR_JSON:{
+                if(strncmp(&buffer[i],"JSON",4)==0){
+                    currentReadingState=READING_JSON;
+                    i+=5;
+                    incrementDepth=1;
+                }break;
+            }
+            case READING_JSON:{
+                switch(buffer[i]){
+                    case ']': case '}':{
+                        incrementDepth--;
+                        if(incrementDepth==0){
+                            currentReadingState=WAITING_FOR_BIN;
+                        }
+                        break;
+                    }case '[': case '{':{
+                        incrementDepth++;
+                        break;
+                    }case '"':{
+                        if(incrementDepth==1){
+                            if(strncmp(&buffer[i+1],"nodes",5)==0){
+                                i+=8;incrementDepth=2;
+                                nodesPosInJSON=i+1;
+                                currentReadingState=COUNTING_NODES;
+                            }else if(strncmp(&buffer[i+1],"meshes",6)==0){
+                                i+=9;incrementDepth=2;
+                                meshesPosInJSON=i+1;
+                                currentReadingState=COUNTING_MESHES;
+                            }else if(strncmp(&buffer[i+1],"accessors",9)==0){
+                                i+=12;incrementDepth=2;
+                                accessorsPosInJSON=i+1;
+                                currentReadingState=COUNTING_ACCESSORS;
+                            }else if(strncmp(&buffer[i+1],"bufferViews",11)==0){
+                                i+=14;incrementDepth=2;
+                                bufferViewsPosInJSON=i+1;
+                                currentReadingState=COUNTING_BUFFERVIEWS;
+                            }else if(strncmp(&buffer[i+1],"buffers",7)==0){
+                                i+=10;incrementDepth=2;
+                                buffersPosInJSON=i+1;
+                                currentReadingState=COUNTING_BUFFERS;
+                            }
+                        }
+                    }
+                }break;
+            }
+            case WAITING_FOR_BIN:{
+                if(strncmp(&buffer[i],"BIN",4)==0){
+                    binStart=i+4;
+                    i=buffer.size();
+                }break;
+            }
+            case COUNTING_NODES:{
+                switch(buffer[i]){
+                    case ']': case '}':{
+                        incrementDepth--;
+                        if(incrementDepth==1){
+                            currentReadingState=READING_JSON;
+                        }
+                        break;
+                    }case '[': case '{':{
+                        incrementDepth++;
+                        if(incrementDepth==3){
+                            meshNodeConstructorCount++;
+                        }
+                        break;
+                    }
+                }break;
+            }
+            case COUNTING_MESHES:{
+                switch(buffer[i]){
+                    case ']': case '}':{
+                        incrementDepth--;
+                        if(incrementDepth==1){
+                            currentReadingState=READING_JSON;
+                        }
+                        break;
+                    }case '[': case '{':{
+                        incrementDepth++;
+                        if(incrementDepth==3){
+                            meshConstructorCount++;
+                        }
+                        break;
+                    }
+                }break;
+            }
+            case COUNTING_ACCESSORS:{
+                switch(buffer[i]){
+                    case ']': case '}':{
+                        incrementDepth--;
+                        if(incrementDepth==1){
+                            currentReadingState=READING_JSON;
+                        }
+                        break;
+                    }case '[': case '{':{
+                        incrementDepth++;
+                        if(incrementDepth==3){
+                            accessorCount++;
+                        }
+                        break;
+                    }
+                }break;
+            }
+            case COUNTING_BUFFERVIEWS:{
+                switch(buffer[i]){
+                    case ']': case '}':{
+                        incrementDepth--;
+                        if(incrementDepth==1){
+                            currentReadingState=READING_JSON;
+                        }
+                        break;
+                    }case '[': case '{':{
+                        incrementDepth++;
+                        if(incrementDepth==3){
+                            bufferViewsCount++;
+                        }
+                        break;
+                    }
+                }break;
+            }
+            case COUNTING_BUFFERS:{
+                switch(buffer[i]){
+                    case ']': case '}':{
+                        incrementDepth--;
+                        if(incrementDepth==1){
+                            currentReadingState=READING_JSON;
+                        }
+                        break;
+                    }case '[': case '{':{
+                        incrementDepth++;
+                        if(incrementDepth==3){
+                            buffersCount++;
+                        }
+                        break;
+                    }
+                }break;
+            }
+        }
+    }
+    buffers=(Buffer*)bump_alloc(bumpAllocator,sizeof(Buffer)*buffersCount);
+    bufferViews=(BufferView*)bump_alloc(bumpAllocator,sizeof(BufferView)*bufferViewsCount);
+    accessors=(Accessor*)bump_alloc(bumpAllocator,sizeof(Accessor)*accessorCount);
+    meshConstructors=(MeshConstructor*)bump_alloc(bumpAllocator,sizeof(MeshConstructor)*meshConstructorCount);
+    meshNodeConstructors=(MeshNodeConstructor*)bump_alloc(bumpAllocator,sizeof(MeshNodeConstructor)*meshNodeConstructorCount);
+    int static posId;
+    //Get buffer data structure
+    incrementDepth=2;posId=0;
+    for(int i=buffersPosInJSON;i<buffer.size();i++){
+        switch(buffer[i]){
+            case ']':case '}':{
+                incrementDepth--;
+                if(incrementDepth==1)i=buffer.size();
+                break;
+            }case '[':case '{':{
+                incrementDepth++;
+                if(incrementDepth==3)posId++;
+                break;
+            }case '"':{
+                if(strncmp(&buffer[i+1],"byteLength",10)==0){
+                    i+=13;
+                    unsigned int byteLength{read_uint(buffer,i)};
+                    buffers[posId-1].length=byteLength;
+                }
+            }
+        }
+    }
+    //Get bufferView data structure
+    incrementDepth=2;posId=0;
+    for(int i=bufferViewsPosInJSON;i<buffer.size();i++){
+        switch(buffer[i]){
+            case ']':case '}':{
+                incrementDepth--;
+                if(incrementDepth==1)i=buffer.size();
+                break;
+            }case '[':case '{':{
+                incrementDepth++;
+                if(incrementDepth==3)posId++;
+                break;
+            }case '"':{
+                if(strncmp(&buffer[i+1],"buffer",6)==0){
+                    i+=9;
+                    unsigned int bufferId{read_uint(buffer,i)};
+                    bufferViews[posId-1].buffer=&buffers[bufferId];
+                }else if(strncmp(&buffer[i+1],"byteLength",10)==0){
+                    i+=13;
+                    unsigned int byteLength{read_uint(buffer,i)};
+                    bufferViews[posId-1].byteLength=byteLength;
+                }else if(strncmp(&buffer[i+1],"byteOffset",10)==0){
+                    i+=13;
+                    unsigned int byteOffset{read_uint(buffer,i)};
+                    bufferViews[posId-1].byteOffset=byteOffset;
+                }else if(strncmp(&buffer[i+1],"byteStride",10)==0){
+                    i+=13;
+                    unsigned int byteStride{read_uint(buffer,i)};
+                    bufferViews[posId-1].byteStride=byteStride;
+                }else if(strncmp(&buffer[i+1],"target",6)==0){
+                    i+=9;
+                    unsigned int target{read_uint(buffer,i)};
+                    bufferViews[posId-1].target=target;
+                }
+            }
+        }
+    }
+    //Get Accessor data structure
+    incrementDepth=2;posId=0;
+    for(int i=accessorsPosInJSON;i<buffer.size();i++){
+        switch(buffer[i]){
+            case ']':case '}':{
+                incrementDepth--;
+                if(incrementDepth==1)i=buffer.size();
+                break;
+            }case '[':case '{':{
+                incrementDepth++;
+                if(incrementDepth==3)posId++;
+                break;
+            }case '"':{
+                if(strncmp(&buffer[i+1],"bufferView",10)==0){
+                    i+=13;
+                    unsigned int bufferViewId{read_uint(buffer,i)};
+                    accessors[posId-1].bufferView=&bufferViews[bufferViewId];
+                }else if(strncmp(&buffer[i+1],"componentType",13)==0){
+                    i+=16;
+                    accessors[posId-1].componentType=read_uint(buffer,i);
+                }else if(strncmp(&buffer[i+1],"count",5)==0){
+                    i+=8;
+                    accessors[posId-1].count=read_uint(buffer,i);
+                }else if(strncmp(&buffer[i+1],"type",4)==0){
+                    i+=7;
+                    accessors[posId-1].type=read_accessor_type(buffer,i);
+                }
+            }
+        }
+    }
+    //Get Mesh data structure
+    incrementDepth=2;posId=0;
+    for(int i=meshesPosInJSON;i<buffer.size();i++){
+        switch(buffer[i]){
+            case ']':case '}':{
+                incrementDepth--;
+                if(incrementDepth==1)i=buffer.size();
+                break;
+            }case '[':case '{':{
+                incrementDepth++;
+                if(incrementDepth==3)posId++;
+                break;
+            }case '"':{
+                if(strncmp(&buffer[i+1],"POSITION",8)==0){
+                    i+=11;
+                    unsigned int accessorId{read_uint(buffer,i)};
+                    meshConstructors[posId-1].positions=&accessors[accessorId];
+                }else if(strncmp(&buffer[i+1],"NORMAL",6)==0){
+                    i+=9;
+                    unsigned int accessorId{read_uint(buffer,i)};
+                    meshConstructors[posId-1].normal=&accessors[accessorId];
+                }else if(strncmp(&buffer[i+1],"TEXCOORD_0",10)==0){
+                    i+=13;
+                    unsigned int accessorId{read_uint(buffer,i)};
+                    meshConstructors[posId-1].texcoord=&accessors[accessorId];
+                }else if(strncmp(&buffer[i+1],"indices",7)==0){
+                    i+=10;
+                    unsigned int accessorId{read_uint(buffer,i)};
+                    meshConstructors[posId-1].indices=&accessors[accessorId];
+                }
+            }
+        }
+    }
+    //Get Node data structure
+    incrementDepth=2;posId=0;
+    for(int i=nodesPosInJSON;i<buffer.size();i++){
+        switch(buffer[i]){
+            case ']':case '}':{
+                incrementDepth--;
+                if(incrementDepth==1)i=buffer.size();
+                break;
+            }case '[':case '{':{
+                incrementDepth++;
+                if(incrementDepth==3)posId++;
+                //meshNodeConstructors[posId-1].scale=glm::vec3(1.0f,1.0f,1.0f);
+                break;
+            }case '"':{
+                if(incrementDepth!=3)break;
+                if(strncmp(&buffer[i+1],"mesh",4)==0){
+                    i+=7;
+                    unsigned int meshId{read_uint(buffer,i)};
+                    meshNodeConstructors[posId-1].meshConstructor=&meshConstructors[meshId];
+                }else if(strncmp(&buffer[i+1],"translation",11)==0){
+                    i+=15;
+                    meshNodeConstructors[posId-1].translation=read_vec3(buffer,i);
+                    i--;
+                }else if(strncmp(&buffer[i+1],"rotation",8)==0){
+                    i+=12;
+                    meshNodeConstructors[posId-1].rotation=read_vec4(buffer,i);
+                    i--;
+                }else if(strncmp(&buffer[i+1],"scale",5)==0){
+                    i+=9;
+                    meshNodeConstructors[posId-1].scale=read_vec3(buffer,i);
+                    i--;
+                }
+            }
+        }
+    }
+}
+
+
+
+// ############################################################################
+//                            Debug
+// ############################################################################
+void sort_glb_file(std::vector<char> &buffer){
+    std::ofstream headerFile("logs/debug_test/header.log");
+    std::ofstream contentFile("logs/debug_test/content.json");
+    std::ofstream binFile("logs/debug_test/buffer.bin");
+
+    SceneReadingState readingState=WAITING_FOR_JSON;
+    for(int i=0;i<buffer.size();i++){
+        switch(readingState){
+            case WAITING_FOR_JSON:{
+                headerFile<<(char)buffer[i];
+                if(buffer[i+1]=='J'&&buffer[i+2]=='S'&&buffer[i+3]=='O'&&buffer[i+4]=='N'){
+                    readingState=WAITING_FOR_BIN;
+                    i+=4;
+                }
+                break;
+            }
+            case WAITING_FOR_BIN:{
+                static int indents=0;
+                switch(buffer[i]){
+                    case '{':{
+                        contentFile<<std::endl;
+                        for(int j=0;j<indents;j++)contentFile<<"\t";
+                        contentFile<<(char)buffer[i]<<std::endl;
+                        indents++;
+                        for(int j=0;j<indents;j++)contentFile<<"\t";
+                        break;
+                    }case '}':{
+                        contentFile<<std::endl;
+                        indents--;
+                        for(int j=0;j<indents;j++)contentFile<<"\t";
+                        contentFile<<(char)buffer[i]<<std::endl;
+                        for(int j=0;j<indents;j++)contentFile<<"\t";
+                        break;
+                    }case '[':{
+                        contentFile<<std::endl;
+                        for(int j=0;j<indents;j++)contentFile<<"\t";
+                        contentFile<<(char)buffer[i]<<std::endl;
+                        indents++;
+                        for(int j=0;j<indents;j++)contentFile<<"\t";
+                        break;
+                    }case ']':{
+                        contentFile<<std::endl;
+                        indents--;
+                        for(int j=0;j<indents;j++)contentFile<<"\t";
+                        contentFile<<(char)buffer[i]<<std::endl;
+                        for(int j=0;j<indents;j++)contentFile<<"\t";
+                        break;
+                    }case ',':{
+                        contentFile<<(char)buffer[i]<<std::endl;
+                        for(int j=0;j<indents;j++)contentFile<<"\t";
+                        break;
+                    }default:{
+                        contentFile<<(char)buffer[i];
+                        break;
+                    }
+                }
+                if(buffer[i+1]=='B'&&buffer[i+2]=='I'&&buffer[i+3]=='N'){
+                    contentFile<<std::endl;
+                    readingState=WAITING_FOR_END_OF_FILE;
+                    i+=4;
+                }
+                break;
+            }
+            case WAITING_FOR_END_OF_FILE:{
+                binFile<<(char)buffer[i];
+                break;
+            }
+            default:{
+                break;
+            }
+        }
+    }
+    headerFile<<std::endl;
+    contentFile<<std::endl;
+    binFile<<std::endl;
+    headerFile.close();
+    contentFile.close();
+    binFile.close();
+}
+
+void disp_glb_structure(char* scenePath,BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
+    SM_TRACE("\n############## disp_glb_structure start ##############\n");
+    SM_TRACE("Reading :");
+    SM_TRACE(scenePath);
+    std::vector<char>* buffer;
+    read_glb_file(scenePath,buffer,persistentStorage);
+    int binStart{-1};
+    int bufferCount{0}, bufferViewCount{0},         accessorCount{0},       meshConstructorCount{0},            meshNodeConstructorCount{0};
+    Buffer* buffers;    BufferView* bufferViews;    Accessor* accessors;    MeshConstructor* meshConstructors;  MeshNodeConstructor* meshNodeConstructors;
+    SM_TRACE("...calling structure...");
+    get_glb_structure(transientStorage,
+                        *buffer,                binStart,
+                        buffers,                bufferCount,
+                        bufferViews,            bufferViewCount,
+                        accessors,              accessorCount,
+                        meshConstructors,       meshConstructorCount,
+                        meshNodeConstructors,   meshNodeConstructorCount);
+    SM_TRACE("\n----------------------\n");
+    SM_TRACE("bufferCount :");
+    SM_TRACE((char*)std::to_string(bufferCount).c_str());
+    SM_TRACE("bufferViewCount :");
+    SM_TRACE((char*)std::to_string(bufferViewCount).c_str());
+    SM_TRACE("accessorCount :");
+    SM_TRACE((char*)std::to_string(accessorCount).c_str());
+    SM_TRACE("meshConstructorCount :");
+    SM_TRACE((char*)std::to_string(meshConstructorCount).c_str());
+    SM_TRACE("meshNodeConstructorCount :");
+    SM_TRACE((char*)std::to_string(meshNodeConstructorCount).c_str());
+    SM_TRACE("\n############## disp_glb_structure end ##############\n");
+}
 
 
 

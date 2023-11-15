@@ -23,6 +23,7 @@
 // ############################################################################
 #include "assets.cpp"
 #include "gl_renderer.cpp"
+#include "render_interface.cpp"
 #include "game.cpp"
 
 // ############################################################################
@@ -31,16 +32,28 @@
 int main(){
     init_debug_log_system();
     SM_TRACE("Loading LTR_Engine");
+
+    {
+        SM_TRACE("...The test zone");
+        char array1[5]{(char)0x2e,(char)0xdb,(char)0x1b,(char)0x43,'\0'};   //74 pos
+        char array2[5]{(char)0xc3,(char)0xca,(char)0xb6,(char)0x89,'\0'};   //2  pos
+        float floatyboy1=get_float_be(array2);
+        float floatyboy2=get_float_le(array2);
+        disp_ascii_chars(array2,4);
+        SM_TRACE((char*)std::to_string(floatyboy1).c_str());
+        SM_TRACE((char*)std::to_string(floatyboy2).c_str());
+        SM_TRACE("...The test zone");
+    }
     
     //Memory allocation
     SM_TRACE("Allocating memory");
-    BumpAllocator transientStorage=make_bump_allocator(MB(20));
+    BumpAllocator transientStorage=make_bump_allocator(MB(200));
     BumpAllocator persistentStorage=make_bump_allocator(MB(500));
 
     input=(Input*)bump_alloc(&persistentStorage,sizeof(Input));
     SM_ASSERT(input,"Failed to allocate input");
-    renderData=(RenderData*)bump_alloc(&persistentStorage,sizeof(RenderData));
-    SM_ASSERT(renderData,"Failed to allocate renderData");
+    RenderInterface::renderData=(RenderInterface::RenderData*)bump_alloc(&persistentStorage,sizeof(RenderInterface::RenderData));
+    SM_ASSERT(RenderInterface::renderData,"Failed to allocate renderData");
     gameData=(GameData*)bump_alloc(&persistentStorage,sizeof(GameData));
     SM_ASSERT(gameData,"Failed to allocate renderData");
 
@@ -57,18 +70,18 @@ int main(){
     platform_swap_buffers();
 
     //Game initialisation
-    init_game();
+    init_game(&transientStorage,&persistentStorage);
 
     //Game loop
     SM_TRACE("Updating game");
     while (gameData->is_running){
         //Update
         platform_update_window();
-        update_game();
+        update_game(&transientStorage,&persistentStorage);
         gl_render();
         platform_swap_buffers();
         transientStorage.used=0;
-        Sleep(16);
+        Sleep(8);
     }
     SM_TRACE("Exiting game");
     return 0;
