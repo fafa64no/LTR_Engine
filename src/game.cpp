@@ -21,11 +21,29 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
     gameData->can_move_mouse_toggled;
     gameData->currentZone=testZone;
 
-    //Testing glb stuff
-    std::vector<char>* bufter;
-    read_glb_file("assets/meshes/LeTestNumero1lolilol.glb",bufter,transientStorage);
-    sort_glb_file(*bufter);
-    RenderInterface::testScene=new RenderInterface::Scene("assets/meshes/LeTestNumero1lolilol.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
+    {
+        //------Testing glb stuff------//
+        //std::vector<char>* bufter;
+        //read_glb_file("assets/meshes/BasicShapes/testShape.glb",bufter,transientStorage);
+        //read_glb_file("assets/meshes/Creatures/Poisson1.glb",bufter,transientStorage);
+        //sort_glb_file(*bufter);
+
+        RenderInterface::testScene=new RenderInterface::Scene("assets/meshes/Creatures/Poisson1.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
+        //RenderInterface::testScene=new RenderInterface::Scene("assets/meshes/BasicShapes/testShape.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
+        //RenderInterface::testScene=new RenderInterface::Scene("assets/meshes/Vehicles/Password.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
+    }
+    {
+        //------Testing node stuff------//
+        int bloppyId=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
+            glm::vec3(3.0f,1.0f,2.0f),
+            glm::vec4(0.0f,0.0f,0.0f,0.0f),
+            glm::vec3(1.0f,1.0f,1.0f),
+            Scenes::meshList[Scenes::MESHID_BLOPPY],
+            faridTexture,
+            testShader
+        ));
+        int bloppyRenderId=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[bloppyId]);
+    }
 }
 void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     //Exit
@@ -45,5 +63,13 @@ void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorag
         if(key_is_down(input->keyBindings[UP_KEY]))RenderInterface::renderData->currentCamera->camPos+=playerSpeed*RenderInterface::renderData->currentCamera->camUp;
         if(key_is_down(input->keyBindings[DOWN_KEY]))RenderInterface::renderData->currentCamera->camPos-=playerSpeed*RenderInterface::renderData->currentCamera->camUp;
         RenderInterface::renderData->currentCamera->updatePos(RenderInterface::renderData->currentCamera->camPos);
+        //Light
+        if(key_pressed_this_frame(input->keyBindings[FULLBRIGHT_KEY])){
+            if(gameData->currentZone==testZone){
+                gameData->currentZone=fullBrightZone;
+            }else{
+                gameData->currentZone=testZone;
+            }
+        }
     }
 }

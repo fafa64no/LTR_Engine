@@ -23,6 +23,7 @@
 // ############################################################################
 #include "assets.cpp"
 #include "gl_renderer.cpp"
+#include "scenes.h"
 #include "render_interface.cpp"
 #include "game.cpp"
 
@@ -54,10 +55,10 @@ int main(){
     SM_ASSERT(input,"Failed to allocate input");
     RenderInterface::renderData=(RenderInterface::RenderData*)bump_alloc(&persistentStorage,sizeof(RenderInterface::RenderData));
     SM_ASSERT(RenderInterface::renderData,"Failed to allocate renderData");
+    RenderInterface::nodeContainer=(RenderInterface::NodeContainer*)bump_alloc(&persistentStorage,sizeof(RenderInterface::NodeContainer));
+    SM_ASSERT(RenderInterface::nodeContainer,"Failed to allocate nodeContainer");
     gameData=(GameData*)bump_alloc(&persistentStorage,sizeof(GameData));
     SM_ASSERT(gameData,"Failed to allocate renderData");
-
-    init_zones_memory(&persistentStorage);
 
     //Window creation
     SM_TRACE("Creating window");
@@ -68,6 +69,7 @@ int main(){
     SM_TRACE("Initialising OpenGL");
     gl_init(&transientStorage,&persistentStorage);
     platform_swap_buffers();
+    SM_ASSERT(Scenes::SetupScenes(&transientStorage,&persistentStorage),"Failed to load scenes");
 
     //Game initialisation
     init_game(&transientStorage,&persistentStorage);

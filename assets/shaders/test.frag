@@ -14,8 +14,7 @@ in vec3 Normal;
 in vec3 FragPos;
 in vec3 LightPos;
 
-uniform sampler2D textureUsed1;
-uniform sampler2D textureUsed2;
+uniform sampler2D textureUsed;
 
 uniform vec3 ambientLight;
 uniform vec3 diffuseLightColor;
@@ -43,7 +42,7 @@ void main(){
         *diffuseLightColor;
 
     vec4 textureColor=
-        mix(texture(textureUsed1,TexCoord),texture(textureUsed2,TexCoord),0.4)
+        texture(textureUsed,TexCoord)
         *vec4(vertexColor,1.0)
         *vec4(
             ambientLight*material.ambient

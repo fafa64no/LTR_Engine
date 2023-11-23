@@ -15,6 +15,7 @@ public:
 //                            Zone Globals
 // ############################################################################
 static Zone* testZone;
+static Zone* fullBrightZone;
 
 // ############################################################################
 //                            Zone Functions
@@ -23,13 +24,12 @@ Zone::Zone(glm::vec3 ambientLight){
     this->ambientLight=ambientLight;
 }
 
-void init_zones_memory(BumpAllocator* persistentStorage){
-    testZone=(Zone*)bump_alloc(persistentStorage,sizeof(Zone));
-    SM_ASSERT(testZone,"Failed to allocate testZone");
-}
 void init_zones(){
     testZone=new Zone(
-        /*glm::vec3(1.0,1.0,1.0)*/glm::vec3(0.1,0.1,0.1)
+        glm::vec3(0.1f,0.1f,0.3f)
+    );
+    fullBrightZone=new Zone(
+        glm::vec3(2.0f,2.0f,2.0f)
     );
 }
 

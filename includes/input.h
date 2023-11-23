@@ -83,6 +83,7 @@ enum Controls{
     DOWN_KEY,
     PAUSE_KEY,
     EXIT_KEY,
+    FULLBRIGHT_KEY,
     DEBUG_KEY,
     CONTROLS_COUNT,
 };
@@ -138,6 +139,7 @@ void reset_key_bindings(Input* input){
     input->keyBindings[DOWN_KEY]=KEY_SHIFT;
     input->keyBindings[PAUSE_KEY]=KEY_ESCAPE;
     input->keyBindings[EXIT_KEY]=KEY_E;
+    input->keyBindings[FULLBRIGHT_KEY]=KEY_C;
     input->keyBindings[DEBUG_KEY]=KEY_R;
 }
 

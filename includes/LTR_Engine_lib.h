@@ -197,6 +197,7 @@ struct MeshConstructor{
     Accessor* indices;
 };
 struct MeshNodeConstructor{
+    char name[16]={0};
     MeshConstructor* meshConstructor;
     glm::vec3 translation;
     glm::vec4 rotation;
@@ -399,6 +400,14 @@ AccessorType read_accessor_type(std::vector<char> &buffer,int &i){
     else if(strncmp(&buffer[i],"VEC4",4)==0)return VEC4;
     return UNKNOWN_ACCESSOR_TYPE;
 }
+void read_name(std::vector<char> &buffer,int &i,char* result){
+    int j=i;
+    for(j;j<buffer.size();j++){
+        if(buffer[j]=='"'||j-i>15)break;
+    }
+    strncpy(result,&buffer[i],j-i);
+}
+
 void read_glb_file(char* filePath,std::vector<char>* &buffer,BumpAllocator* persistentStorage){
     SM_TRACE("Loading glb scene...");
     std::ifstream input(filePath,std::ios::binary);
@@ -415,6 +424,7 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
             Accessor* &accessors,                       int &accessorCount,
             MeshConstructor* &meshConstructors,         int &meshConstructorCount,
             MeshNodeConstructor* &meshNodeConstructors, int &meshNodeConstructorCount){
+    SM_TRACE("Searching glb structure...");
     int nodesPosInJSON{-1},meshesPosInJSON{-1},accessorsPosInJSON{-1},bufferViewsPosInJSON{-1},buffersPosInJSON{-1},incrementDepth{0};
     SceneReadingState currentReadingState=WAITING_FOR_JSON;
     buffersCount=0;
@@ -569,6 +579,7 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
     meshConstructors=(MeshConstructor*)bump_alloc(bumpAllocator,sizeof(MeshConstructor)*meshConstructorCount);
     meshNodeConstructors=(MeshNodeConstructor*)bump_alloc(bumpAllocator,sizeof(MeshNodeConstructor)*meshNodeConstructorCount);
     int static posId;
+    SM_TRACE("Reading buffer structure...");
     //Get buffer data structure
     incrementDepth=2;posId=0;
     for(int i=buffersPosInJSON;i<buffer.size();i++){
@@ -590,6 +601,7 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
             }
         }
     }
+    SM_TRACE("Reading bufferView structure...");
     //Get bufferView data structure
     incrementDepth=2;posId=0;
     for(int i=bufferViewsPosInJSON;i<buffer.size();i++){
@@ -627,6 +639,7 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
             }
         }
     }
+    SM_TRACE("Reading Accessor structure...");
     //Get Accessor data structure
     incrementDepth=2;posId=0;
     for(int i=accessorsPosInJSON;i<buffer.size();i++){
@@ -657,6 +670,7 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
             }
         }
     }
+    SM_TRACE("Reading Mesh structure...");
     //Get Mesh data structure
     incrementDepth=2;posId=0;
     for(int i=meshesPosInJSON;i<buffer.size();i++){
@@ -690,6 +704,7 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
             }
         }
     }
+    SM_TRACE("Reading Node structure...");
     //Get Node data structure
     incrementDepth=2;posId=0;
     for(int i=nodesPosInJSON;i<buffer.size();i++){
@@ -701,7 +716,6 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
             }case '[':case '{':{
                 incrementDepth++;
                 if(incrementDepth==3)posId++;
-                //meshNodeConstructors[posId-1].scale=glm::vec3(1.0f,1.0f,1.0f);
                 break;
             }case '"':{
                 if(incrementDepth!=3)break;
@@ -709,6 +723,9 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
                     i+=7;
                     unsigned int meshId{read_uint(buffer,i)};
                     meshNodeConstructors[posId-1].meshConstructor=&meshConstructors[meshId];
+                }else if(strncmp(&buffer[i+1],"name",4)==0){
+                    i+=8;
+                    read_name(buffer,i,meshNodeConstructors[posId-1].name);
                 }else if(strncmp(&buffer[i+1],"translation",11)==0){
                     i+=15;
                     meshNodeConstructors[posId-1].translation=read_vec3(buffer,i);
@@ -810,37 +827,6 @@ void sort_glb_file(std::vector<char> &buffer){
     headerFile.close();
     contentFile.close();
     binFile.close();
-}
-
-void disp_glb_structure(char* scenePath,BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
-    SM_TRACE("\n############## disp_glb_structure start ##############\n");
-    SM_TRACE("Reading :");
-    SM_TRACE(scenePath);
-    std::vector<char>* buffer;
-    read_glb_file(scenePath,buffer,persistentStorage);
-    int binStart{-1};
-    int bufferCount{0}, bufferViewCount{0},         accessorCount{0},       meshConstructorCount{0},            meshNodeConstructorCount{0};
-    Buffer* buffers;    BufferView* bufferViews;    Accessor* accessors;    MeshConstructor* meshConstructors;  MeshNodeConstructor* meshNodeConstructors;
-    SM_TRACE("...calling structure...");
-    get_glb_structure(transientStorage,
-                        *buffer,                binStart,
-                        buffers,                bufferCount,
-                        bufferViews,            bufferViewCount,
-                        accessors,              accessorCount,
-                        meshConstructors,       meshConstructorCount,
-                        meshNodeConstructors,   meshNodeConstructorCount);
-    SM_TRACE("\n----------------------\n");
-    SM_TRACE("bufferCount :");
-    SM_TRACE((char*)std::to_string(bufferCount).c_str());
-    SM_TRACE("bufferViewCount :");
-    SM_TRACE((char*)std::to_string(bufferViewCount).c_str());
-    SM_TRACE("accessorCount :");
-    SM_TRACE((char*)std::to_string(accessorCount).c_str());
-    SM_TRACE("meshConstructorCount :");
-    SM_TRACE((char*)std::to_string(meshConstructorCount).c_str());
-    SM_TRACE("meshNodeConstructorCount :");
-    SM_TRACE((char*)std::to_string(meshNodeConstructorCount).c_str());
-    SM_TRACE("\n############## disp_glb_structure end ##############\n");
 }
 
 
