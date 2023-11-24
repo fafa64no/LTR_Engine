@@ -1,7 +1,6 @@
 
 #include "LTR_Engine_lib.h"
 #include "input.h"
-#include "assets.h"
 #include "game.h"
 #include "zone.h"
 
@@ -21,7 +20,6 @@
 // ############################################################################
 //                            Cross Platform Functions
 // ############################################################################
-#include "assets.cpp"
 #include "gl_renderer.cpp"
 #include "scenes.h"
 #include "render_interface.cpp"
@@ -34,18 +32,6 @@ int main(){
     init_debug_log_system();
     SM_TRACE("Loading LTR_Engine");
 
-    {
-        SM_TRACE("...The test zone");
-        char array1[5]{(char)0x2e,(char)0xdb,(char)0x1b,(char)0x43,'\0'};   //74 pos
-        char array2[5]{(char)0xc3,(char)0xca,(char)0xb6,(char)0x89,'\0'};   //2  pos
-        float floatyboy1=get_float_be(array2);
-        float floatyboy2=get_float_le(array2);
-        disp_ascii_chars(array2,4);
-        SM_TRACE((char*)std::to_string(floatyboy1).c_str());
-        SM_TRACE((char*)std::to_string(floatyboy2).c_str());
-        SM_TRACE("...The test zone");
-    }
-    
     //Memory allocation
     SM_TRACE("Allocating memory");
     BumpAllocator transientStorage=make_bump_allocator(MB(200));

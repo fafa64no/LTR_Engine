@@ -11,18 +11,6 @@
 //                            OpenGL Constants
 // ############################################################################
 #include "test_models.h"
-const glm::vec3 cubePositions[] = {
-    glm::vec3(-2.0f, -1.0f,  0.0f), 
-    glm::vec3( 2.0f,  1.0f,  0.0f), 
-    glm::vec3(-1.5f, -2.2f, -2.5f),  
-    glm::vec3(-3.8f, -2.0f, -6.3f),  
-    glm::vec3( 2.4f, -0.4f, -3.5f),  
-    glm::vec3(-1.7f,  3.0f, -5.5f),  
-    glm::vec3( 1.3f, -2.0f, -2.5f),  
-    glm::vec3( 1.5f,  2.0f, -2.5f), 
-    glm::vec3( 1.5f,  0.2f, -1.5f), 
-    glm::vec3(-1.3f,  1.0f, -1.5f)  
-};
 
 // ############################################################################
 //                            OpenGL Structs
@@ -40,12 +28,12 @@ struct GLContext{
 static GLContext glContext;
 
 
-static Shader* menuShader;
-static Shader* lightShader;
+static RenderInterface::Shader* menuShader;
+static RenderInterface::Shader* lightShader;
 
-static Texture* ltrTexture;
-static Texture* woodTexture;
-static Texture* awesomeTexture;
+static RenderInterface::Texture* ltrTexture;
+static RenderInterface::Texture* woodTexture;
+static RenderInterface::Texture* awesomeTexture;
 static unsigned int 
     cubes_VBO,cubes_VAO,cubes_EBO,
     lights_VBO,lights_VAO,lights_EBO;
@@ -72,7 +60,8 @@ static void APIENTRY gl_debug_callback(
     }
 }
 void gl_clear(){
-    glClearColor(0.1f,0.1f,0.12f,1);
+    //glClearColor(0.1f,0.1f,0.12f,1);
+    glClearColor(0.8f,0.8f,0.8f,1);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 }
 
@@ -149,16 +138,16 @@ void gl_render(){
 //                            OpenGL Init Functions
 // ############################################################################
 void gl_shaders_init(BumpAllocator* persistentStorage){
-    testShader=new Shader("assets/shaders/test.vert","assets/shaders/test.frag",persistentStorage);
+    testShader=new RenderInterface::Shader("assets/shaders/test.vert","assets/shaders/test.frag",persistentStorage);
 
     //menuShader=new Shader("assets/shaders/menuShader.vert","assets/shaders/menuShader.frag",persistentStorage);
-    lightShader=new Shader("assets/shaders/lightShader.vert","assets/shaders/lightShader.frag",persistentStorage);
+    lightShader=new RenderInterface::Shader("assets/shaders/lightShader.vert","assets/shaders/lightShader.frag",persistentStorage);
 }
-void gl_textures_init(BumpAllocator* persistentStorage){
-    ltrTexture=new Texture("assets/textures/LTR.png",persistentStorage,GL_RGBA);
-    faridTexture=new Texture("assets/textures/farid.png",persistentStorage,GL_RGBA);
-    woodTexture=new Texture("assets/textures/container.jpg",persistentStorage,GL_RGB);
-    awesomeTexture=new Texture("assets/textures/awesomeface.png",persistentStorage,GL_RGBA);
+void gl_textures_init(){
+    ltrTexture=new RenderInterface::Texture("assets/textures/LTR.png",GL_RGBA);
+    faridTexture=new RenderInterface::Texture("assets/textures/farid.png",GL_RGBA);
+    woodTexture=new RenderInterface::Texture("assets/textures/container.jpg",GL_RGB);
+    awesomeTexture=new RenderInterface::Texture("assets/textures/awesomeface.png",GL_RGBA);
 }
 bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     load_gl_functions();
@@ -169,25 +158,6 @@ bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     //Init Shaders and Materials
     gl_shaders_init(persistentStorage);
     gl_materials_init();
-
-    //Generate VAO, VBO and EBO for cubes
-    glGenVertexArrays(1,&cubes_VAO);
-    glGenBuffers(1,&cubes_VBO);
-    glGenBuffers(1,&cubes_EBO);
-    glBindVertexArray(cubes_VAO);
-    glBindBuffer(GL_ARRAY_BUFFER,cubes_VBO);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(cube_with_normals_vertices),cube_with_normals_vertices,GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,cubes_EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(cube_with_normals_indices),cube_with_normals_indices,GL_DYNAMIC_DRAW);
-    //Vertex attribs
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,11*sizeof(float),(void*)0);
-    glEnableVertexAttribArray(0); 
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,11*sizeof(float),(void*)(3*sizeof(float)));
-    glEnableVertexAttribArray(1); 
-    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,11*sizeof(float),(void*)(6*sizeof(float)));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(3,3,GL_FLOAT,GL_FALSE,11*sizeof(float),(void*)(8*sizeof(float)));
-    glEnableVertexAttribArray(3);
 
     //Generate VAO, VBO and EBO for lights
     glGenVertexArrays(1,&lights_VAO);
@@ -205,7 +175,7 @@ bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     glEnableVertexAttribArray(1); 
 
     //Load textures
-    gl_textures_init(persistentStorage);
+    gl_textures_init();
 
     //Init camera
     RenderInterface::renderData->currentCamera=new RenderInterface::Camera(

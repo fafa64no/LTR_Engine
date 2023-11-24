@@ -18,7 +18,7 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
     gameData->is_running=true;
     gameData->is_paused=false;
     gameData->can_move_mouse=false;
-    gameData->can_move_mouse_toggled;
+    gameData->can_move_mouse_toggled=false;
     gameData->currentZone=testZone;
 
     {
@@ -27,12 +27,7 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
         //read_glb_file("assets/meshes/BasicShapes/testShape.glb",bufter,transientStorage);
         //read_glb_file("assets/meshes/Creatures/Poisson1.glb",bufter,transientStorage);
         //sort_glb_file(*bufter);
-
-        RenderInterface::testScene=new RenderInterface::Scene("assets/meshes/Creatures/Poisson1.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
-        //RenderInterface::testScene=new RenderInterface::Scene("assets/meshes/BasicShapes/testShape.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
-        //RenderInterface::testScene=new RenderInterface::Scene("assets/meshes/Vehicles/Password.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
-    }
-    {
+        
         //------Testing node stuff------//
         int bloppyId=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
             glm::vec3(3.0f,1.0f,2.0f),
@@ -43,6 +38,46 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
             testShader
         ));
         int bloppyRenderId=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[bloppyId]);
+
+        int icoId=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
+            glm::vec3(-6.0f,2.0f,-4.0f),
+            glm::vec4(0.0f,0.0f,0.0f,0.0f),
+            glm::vec3(1.0f,1.0f,1.0f),
+            Scenes::meshList[Scenes::MESHID_SPACESHIP],
+            faridTexture,
+            testShader
+        ));
+        int icoRenderId=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[icoId]);
+
+        int dfdfsfsd=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
+            glm::vec3(-1.0f,-3.0f,-2.0f),
+            glm::vec4(0.0f,0.0f,0.0f,0.0f),
+            glm::vec3(1.0f,1.0f,1.0f),
+            Scenes::meshList[Scenes::MESHID_ICOSPHERE],
+            faridTexture,
+            testShader
+        ));
+        int sqd=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[dfdfsfsd]);
+
+        int qs=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
+            glm::vec3(-4.0f,10.2f,-3.0f),
+            glm::vec4(0.0f,0.0f,0.0f,0.0f),
+            glm::vec3(5.0f,5.0f,5.0f),
+            Scenes::meshList[Scenes::MESHID_PWASCEONAIN],
+            faridTexture,
+            testShader
+        ));
+        int fgh=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[qs]);
+
+        int qsdfadfsdf=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
+            glm::vec3(-5.0f,1.0f,2.0f),
+            glm::vec4(0.0f,0.0f,0.0f,0.0f),
+            glm::vec3(1.0f,1.0f,1.0f),
+            Scenes::meshList[Scenes::MESHID_BLOPPY],
+            faridTexture,
+            testShader
+        ));
+        int ertryututyu=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[qsdfadfsdf]);
     }
 }
 void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){

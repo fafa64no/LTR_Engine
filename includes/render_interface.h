@@ -3,13 +3,15 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "LTR_Engine_lib.h"
-#include "assets.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 // ############################################################################
 //                            Render Constants
 // ############################################################################
-constexpr int MAX_2D_TRANSFORMS_TO_RENDER=1000;
-constexpr int MAX_2D_TRANSFORMS=1000;
+constexpr int MAX_2DNODES_TO_RENDER=512;
+constexpr int MAX_2DNODES=4096;
 constexpr int MAX_NODES_TO_RENDER=512;
 constexpr int MAX_NODES=4096;
 
@@ -23,7 +25,50 @@ namespace RenderInterface{
         glm::vec2 TexCoords;
         glm::vec3 Normal;
     };
+
+    // ############################################################################
+    //                            OpenGL Stuff
+    // ############################################################################
+    class Shader{
+    public:
+        unsigned int programID;
+        Shader(char* vertexPath,char* fragmentPath,BumpAllocator* bumpAllocator);
+        void use();
+        void setBool(const std::string &name,bool value) const;
+        void setInt(const std::string &name,int value) const;
+        void setFloat(const std::string &name,float value) const;
+        void setMat4(const std::string &name,glm::mat4 value) const;
+        void setVec3(const std::string &name,glm::vec3 value) const;
+    };
+    class Texture{
+    public:
+        Texture(char* texturePath,unsigned int internalFormat);
+        Texture(char* texturePath,glm::vec4 selection,unsigned int internalFormat);
+        void use();
+    private:
+        unsigned int textureID;
+        int width,height,nrChannels;
+    };
+
+    // ############################################################################
+    //                            2D Stuff
+    // ############################################################################
+    class Node2D{
+    public:
+        Node2D();
+    };
+    class Atlas{
+    public:
+        Atlas(char* atlasPath,glm::ivec2 textureSize,glm::ivec2 atlasSize,BumpAllocator* bumpAllocator,unsigned int internalFormat);
+        Texture** textures;
+        const int getTextureCount();
+    private:
+        unsigned int textureCount=0;
+    };
     
+    // ############################################################################
+    //                            3D Stuff
+    // ############################################################################
     class Mesh{
     public:
         Mesh(MeshConstructor* meshConstructor,char* buffer,unsigned int type);
@@ -48,7 +93,7 @@ namespace RenderInterface{
         void rotate(glm::vec4 rotation);
         void reScale(glm::vec3 scale);
         Node** childNode;
-        int childrenCount=0;
+        unsigned int childrenCount=0;
     private:
         glm::vec3 position;
         glm::mat4 rotation;
@@ -58,13 +103,16 @@ namespace RenderInterface{
     public:
         Scene(char* scenePath,unsigned int type,BumpAllocator* persistantStorage,BumpAllocator* transientStorage);
         Node** nodes;
-        const int getNodeCount();
+        const unsigned int getNodeCount();
         void Draw(Shader &shader);
-        int getNodeWithName(char* name);
+        int unsigned getNodeWithName(char* name);
     private:
-        int nodeCount=0;
+        unsigned int nodeCount=0;
     };
 
+    // ############################################################################
+    //                            Other Stuff
+    // ############################################################################
     class Camera{
     public:
         Camera(glm::vec3 camPos,glm::vec3 camFront,glm::vec3 camUp);
@@ -80,14 +128,14 @@ namespace RenderInterface{
     };
     struct RenderData{
         Camera* currentCamera;
-        Transform2D* transforms_to_render_2D[MAX_2D_TRANSFORMS];
-        int transformCount=0;
+        //Transform2D* transforms_to_render_2D[MAX_2D_TRANSFORMS];
+        //int transformCount=0;
         Node* nodes_to_render[MAX_NODES_TO_RENDER];
-        int nodeCount=0;
+        unsigned int nodeCount=0;
     };
     struct NodeContainer{
         Node* nodes[MAX_NODES];
-        int nodeCount=0;
+        unsigned int nodeCount=0;
     };
     // ############################################################################
     //                            Render Functions
@@ -98,18 +146,14 @@ namespace RenderInterface{
         return renderData->nodeCount++;
     }
     int storeNode(NodeContainer* nodeContainer,Node* node){
-        SM_TRACE("blurp");
         if(nodeContainer->nodeCount==MAX_NODES)return -1;
-        SM_TRACE("blurp");
         nodeContainer->nodes[nodeContainer->nodeCount]=node;
-        SM_TRACE("blurp");
         return nodeContainer->nodeCount++;
     }
 
     // ############################################################################
     //                            Render Globals
     // ############################################################################
-
     static RenderData* renderData;
     static NodeContainer* nodeContainer;
     static Scene* testScene;

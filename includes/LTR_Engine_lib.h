@@ -80,33 +80,6 @@ void disp_ascii_chars(char* start,int length){
 // ############################################################################
 //                            Miscellaneous
 // ############################################################################
-float get_float_le(char* array){
-    char temp[sizeof(float)];
-    for(int i=0;i<sizeof(float);i++)temp[i]=array[sizeof(float)-i-1];
-    return *((float*)&temp[0]);
-}
-float get_float_be(char* array){
-    return *((float*)&array[0]);
-}
-
-unsigned short get_ushort_le(char* array){
-    char temp[sizeof(unsigned short)];
-    for(int i=0;i<sizeof(unsigned short);i++)temp[i]=array[sizeof(unsigned short)-i-1];
-    return *((unsigned short*)&temp[0]);
-}
-unsigned short get_ushort_be(char* array){
-    return *((unsigned short*)&array[0]);
-}
-
-unsigned int get_uint_fshort_le(char* array){
-    char temp[sizeof(unsigned int)];
-    for(int i=0;i<sizeof(unsigned int);i++)temp[i]=array[sizeof(unsigned int)-i-1];
-    return *((unsigned int*)&temp[0])&0x0000ffff;
-}
-unsigned int get_uint_fshort_be(char* array){
-    return (*((unsigned int*)&array[0]))&0x0000ffff;
-}
-
 void quatToMat(glm::mat4 &mat,glm::vec4 quat){
     ///TODO convert quaternion to matrix
 }
