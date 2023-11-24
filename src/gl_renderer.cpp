@@ -109,40 +109,6 @@ void gl_render_3D_layer(glm::mat4 viewMat,glm::mat4 projMat){
 
     testShader->setMat4("view",viewMat);
     testShader->setMat4("proj",projMat);
-//    //Cubes model matrix
-//    for(unsigned int i=0;i<10;i++){
-//        glm::mat4 modelMat=glm::mat4(1.0);
-//        modelMat=glm::translate(modelMat,cubePositions[i]);
-//        modelMat=glm::rotate(modelMat,glm::radians(modelAngle+i*20),glm::vec3(0.5,1.0,1.0));
-//        modelMat=glm::scale(modelMat,glm::vec3(0.5,0.5,0.5));
-//
-//        testShader->setMat4("model",modelMat);
-//
-//        glm::mat4 normalMat=glm::transpose(glm::inverse(viewMat*modelMat));
-//        testShader->setMat4("normalMat",normalMat);
-//
-//        glBindVertexArray(cubes_VAO);
-//        glDrawElements(GL_TRIANGLES,sizeof(cube_indices),GL_UNSIGNED_INT,nullptr);
-//    }
-//    if(!gameData->is_paused)modelAngle+=0.5;
-//    //Ground model matrix
-//    glActiveTexture(GL_TEXTURE0);
-//    woodTexture->use();
-//    glm::mat4 modelMat=glm::mat4(1.0);
-//    modelMat=glm::translate(modelMat,glm::vec3(0.0,-13.0,-5.0));
-//    modelMat=glm::scale(modelMat,glm::vec3(20.0,20.0,20.0));
-//
-//    testShader->setMat4("model",modelMat);
-//
-//    glm::mat4 normalMat=glm::transpose(glm::inverse(viewMat*modelMat));
-//    testShader->setMat4("normalMat",normalMat);
-//
-//    glBindVertexArray(cubes_VAO);
-//    glDrawElements(GL_TRIANGLES,sizeof(cube_indices),GL_UNSIGNED_INT,nullptr);
-//
-//    glActiveTexture(GL_TEXTURE0);
-//    woodTexture->use();
-//    RenderInterface::testScene->Draw(*testShader);
 
     for(int i=0;i<RenderInterface::renderData->nodeCount;i++){
         RenderInterface::renderData->nodes_to_render[i]->Draw(RenderInterface::renderData);

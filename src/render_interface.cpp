@@ -150,12 +150,15 @@ namespace RenderInterface{
     }
     void Node::translate(glm::vec3 translation){
         this->position+=translation;
+        for(int i=0;i<this->childrenCount;i++)this->childNode[i]->translate(translation);
     }
     void Node::rotate(glm::vec4 rotation){
         //this->rotation=rotation;
+        for(int i=0;i<this->childrenCount;i++)this->childNode[i]->rotate(rotation);
     }
     void Node::reScale(glm::vec3 scale){
         this->scale=scale;
+        for(int i=0;i<this->childrenCount;i++)this->childNode[i]->reScale(scale);
     }
 
     // ############################################################################
