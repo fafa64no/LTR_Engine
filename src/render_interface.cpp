@@ -96,20 +96,9 @@ namespace RenderInterface{
     //                            Atlas Functions
     // ############################################################################
     Atlas::Atlas(char* atlasPath,glm::ivec2 textureSize,glm::ivec2 atlasSize,BumpAllocator* bumpAllocator,unsigned int internalFormat){
-        unsigned int width{(unsigned int)(atlasSize.x/textureSize.x)},height{(unsigned int)(atlasSize.y/textureSize.y)};
-        this->textures=(Texture**)bump_alloc(bumpAllocator,sizeof(Texture*)*width*height);
-        this->textureCount=width*height;
-        for(unsigned int i=0;i<width*height;i++){
-            this->textures[i]=new Texture(atlasPath,glm::vec4(
-                (i%width)*textureSize.x,
-                (i-i%width)*textureSize.y,
-                (i%width+1)*textureSize.x,
-                (i-i%width+width)*textureSize.y
-            ),internalFormat);
-        }
-    }
-    const int Atlas::getTextureCount(){
-        return this->textureCount;
+        this->atlasSize=atlasSize;
+        this->textureSize=textureSize;
+        this->atlasTextures=new Texture(atlasPath,internalFormat);
     }
 
     // ############################################################################

@@ -60,10 +60,10 @@ namespace RenderInterface{
     class Atlas{
     public:
         Atlas(char* atlasPath,glm::ivec2 textureSize,glm::ivec2 atlasSize,BumpAllocator* bumpAllocator,unsigned int internalFormat);
-        Texture** textures;
-        const int getTextureCount();
+        void Draw(unsigned int textureId);
     private:
-        unsigned int textureCount=0;
+        glm::ivec2 atlasSize,textureSize;
+        Texture* atlasTextures;
     };
     
     // ############################################################################
