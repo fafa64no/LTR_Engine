@@ -74,7 +74,7 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
             glm::vec4(0.0f,0.0f,0.0f,0.0f),
             glm::vec3(1.0f,1.0f,1.0f),
             Scenes::meshList[Scenes::MESHID_BLOPPY],
-            faridTexture,
+            woodTexture,
             testShader
         ));
         int ertryututyu=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[qsdfadfsdf]);
