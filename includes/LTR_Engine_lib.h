@@ -132,6 +132,9 @@ enum SceneReadingState{
     COUNTING_ACCESSORS,
     COUNTING_MESHES,
     COUNTING_NODES,
+    COUNTING_SKINS,
+    COUNTING_ANIMATIONS,
+    COUNTING_MATERIALS,
 
     WAITING_FOR_END_OF_FILE,
 
@@ -335,20 +338,32 @@ unsigned int read_uint(std::vector<char> &buffer,int &i){
 float read_float(std::vector<char> &buffer,int &i){
     float result{0};
     int afterDot=-0x7fff;
-    int sign=1;
+    short sign{1},exponentSign{1},exponent{0};
+    bool readingExponent=false;
     for(i;i<buffer.size();i++){
         if(buffer[i]<='9'&&buffer[i]>='0'){
+            if(readingExponent){
+                exponent*=10;
+                exponent+=buffer[i]&0x0f;
+                continue;
+            }
             result=(afterDot>0)?result+(buffer[i]&0x0f)*(float)pow(0.1,(double)afterDot):(float)10*result+(buffer[i]&0x0f);
             afterDot++;
         }else if(buffer[i]=='.'){
             afterDot=1;
         }else if(buffer[i]=='-'){
-            sign=-1;
+            if(readingExponent){
+                exponentSign=-1;
+                continue;
+            }sign=-1;
+        }else if(buffer[i]=='e'){
+            readingExponent=true;
         }else{
             break;
         }
     }
-    return sign*result;
+
+    return sign*result*(float)pow(10.0,(double)(exponentSign*exponent));
 }
 glm::vec3 read_vec3(std::vector<char> &buffer,int &i){
     glm::vec3 result;
@@ -396,15 +411,23 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
             BufferView* &bufferViews,                   int &bufferViewsCount,
             Accessor* &accessors,                       int &accessorCount,
             MeshConstructor* &meshConstructors,         int &meshConstructorCount,
-            MeshNodeConstructor* &meshNodeConstructors, int &meshNodeConstructorCount){
+            MeshNodeConstructor* &nodeConstructors,     int &nodeConstructorCount){
     SM_TRACE("Searching glb structure...");
-    int nodesPosInJSON{-1},meshesPosInJSON{-1},accessorsPosInJSON{-1},bufferViewsPosInJSON{-1},buffersPosInJSON{-1},incrementDepth{0};
+    int nodesPosInJSON{-1},
+        meshesPosInJSON{-1},
+        accessorsPosInJSON{-1},
+        bufferViewsPosInJSON{-1},
+        buffersPosInJSON{-1},
+        animationsPosInJSON{-1},
+        materialsPosInJSON{-1},
+        skinsPosInJSON{-1},
+        incrementDepth{0};
     SceneReadingState currentReadingState=WAITING_FOR_JSON;
     buffersCount=0;
     bufferViewsCount=0;
     accessorCount=0;
     meshConstructorCount=0;
-    meshNodeConstructorCount=0;
+    nodeConstructorCount=0;
     //Get JSON positions
     for(int i=0;i<buffer.size();i++){
         switch(currentReadingState){
@@ -448,6 +471,18 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
                                 i+=10;incrementDepth=2;
                                 buffersPosInJSON=i+1;
                                 currentReadingState=COUNTING_BUFFERS;
+                            }else if(strncmp(&buffer[i+1],"animations",10)==0){
+                                i+=13;incrementDepth=2;
+                                animationsPosInJSON=i+1;
+                                currentReadingState=COUNTING_ANIMATIONS;
+                            }else if(strncmp(&buffer[i+1],"materials",9)==0){
+                                i+=12;incrementDepth=2;
+                                materialsPosInJSON=i+1;
+                                currentReadingState=COUNTING_MATERIALS;
+                            }else if(strncmp(&buffer[i+1],"skins",5)==0){
+                                i+=8;incrementDepth=2;
+                                skinsPosInJSON=i+1;
+                                currentReadingState=COUNTING_SKINS;
                             }
                         }
                     }
@@ -470,7 +505,8 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
                     }case '[': case '{':{
                         incrementDepth++;
                         if(incrementDepth==3){
-                            meshNodeConstructorCount++;
+                            disp_chars(&buffer[i],64);
+                            nodeConstructorCount++;
                         }
                         break;
                     }
@@ -544,13 +580,64 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
                     }
                 }break;
             }
+            case COUNTING_ANIMATIONS:{
+                switch(buffer[i]){
+                    case ']': case '}':{
+                        incrementDepth--;
+                        if(incrementDepth==1){
+                            currentReadingState=READING_JSON;
+                        }
+                        break;
+                    }case '[': case '{':{
+                        incrementDepth++;
+                        if(incrementDepth==3){
+                            //buffersCount++;
+                        }
+                        break;
+                    }
+                }break;
+            }
+            case COUNTING_MATERIALS:{
+                switch(buffer[i]){
+                    case ']': case '}':{
+                        incrementDepth--;
+                        if(incrementDepth==1){
+                            currentReadingState=READING_JSON;
+                        }
+                        break;
+                    }case '[': case '{':{
+                        incrementDepth++;
+                        if(incrementDepth==3){
+                            //buffersCount++;
+                        }
+                        break;
+                    }
+                }break;
+            }
+            case COUNTING_SKINS:{
+                switch(buffer[i]){
+                    case ']': case '}':{
+                        incrementDepth--;
+                        if(incrementDepth==1){
+                            currentReadingState=READING_JSON;
+                        }
+                        break;
+                    }case '[': case '{':{
+                        incrementDepth++;
+                        if(incrementDepth==3){
+                            //buffersCount++;
+                        }
+                        break;
+                    }
+                }break;
+            }
         }
     }
     buffers=(Buffer*)bump_alloc(bumpAllocator,sizeof(Buffer)*buffersCount);
     bufferViews=(BufferView*)bump_alloc(bumpAllocator,sizeof(BufferView)*bufferViewsCount);
     accessors=(Accessor*)bump_alloc(bumpAllocator,sizeof(Accessor)*accessorCount);
     meshConstructors=(MeshConstructor*)bump_alloc(bumpAllocator,sizeof(MeshConstructor)*meshConstructorCount);
-    meshNodeConstructors=(MeshNodeConstructor*)bump_alloc(bumpAllocator,sizeof(MeshNodeConstructor)*meshNodeConstructorCount);
+    nodeConstructors=(MeshNodeConstructor*)bump_alloc(bumpAllocator,sizeof(MeshNodeConstructor)*nodeConstructorCount);
     int static posId;
     SM_TRACE("Reading buffer structure...");
     //Get buffer data structure
@@ -688,6 +775,7 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
                 break;
             }case '[':case '{':{
                 incrementDepth++;
+                disp_chars(&buffer[i],64);
                 if(incrementDepth==3)posId++;
                 break;
             }case '"':{
@@ -695,21 +783,21 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
                 if(strncmp(&buffer[i+1],"mesh",4)==0){
                     i+=7;
                     unsigned int meshId{read_uint(buffer,i)};
-                    meshNodeConstructors[posId-1].meshConstructor=&meshConstructors[meshId];
+                    nodeConstructors[posId-1].meshConstructor=&meshConstructors[meshId];
                 }else if(strncmp(&buffer[i+1],"name",4)==0){
                     i+=8;
-                    read_name(buffer,i,meshNodeConstructors[posId-1].name);
+                    read_name(buffer,i,nodeConstructors[posId-1].name);
                 }else if(strncmp(&buffer[i+1],"translation",11)==0){
                     i+=15;
-                    meshNodeConstructors[posId-1].translation=read_vec3(buffer,i);
+                    nodeConstructors[posId-1].translation=read_vec3(buffer,i);
                     i--;
                 }else if(strncmp(&buffer[i+1],"rotation",8)==0){
                     i+=12;
-                    meshNodeConstructors[posId-1].rotation=read_vec4(buffer,i);
+                    nodeConstructors[posId-1].rotation=read_vec4(buffer,i);
                     i--;
                 }else if(strncmp(&buffer[i+1],"scale",5)==0){
                     i+=9;
-                    meshNodeConstructors[posId-1].scale=read_vec3(buffer,i);
+                    nodeConstructors[posId-1].scale=read_vec3(buffer,i);
                     i--;
                 }
             }

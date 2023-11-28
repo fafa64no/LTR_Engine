@@ -188,7 +188,7 @@ namespace RenderInterface{
         this->shader=testShader;
     }
     Node::Node(glm::vec3 position,glm::vec4 rotation,glm::vec3 scale,Mesh* mesh,Texture* texture,Shader* shader){
-        //SM_TRACE("\tBuilding node");
+        SM_TRACE("\tBuilding node");
         this->mesh=mesh;
         this->position=position;
         quatToMat(this->rotation,rotation);
@@ -245,6 +245,7 @@ namespace RenderInterface{
         int incrementDepth{1};
         //Build scene
         SM_TRACE("Building scene");
+        SM_TRACE((char*)std::to_string(meshNodeConstructorCount).c_str());
         this->nodeCount=meshNodeConstructorCount;
         this->nodes=(Node**)bump_alloc(persistentStorage,sizeof(Node*)*this->nodeCount);
         for(int i=0;i<meshNodeConstructorCount;i++){
@@ -256,7 +257,7 @@ namespace RenderInterface{
             );
             strcpy(this->nodes[i]->name,meshNodeConstructors[i].name);
             //Build meshes
-            this->nodes[i]->mesh=new Mesh(&meshConstructors[i],(char*)&buffer[0][binStart],type);
+            if(meshNodeConstructors[i].meshConstructor)this->nodes[i]->mesh=new Mesh(meshNodeConstructors[i].meshConstructor,(char*)&buffer[0][binStart],type);
         }
     }
     const unsigned int Scene::getNodeCount(){
