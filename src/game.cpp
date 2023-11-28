@@ -26,7 +26,7 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
         //std::vector<char>* bufter;
         //read_glb_file("assets/meshes/BasicShapes/testShape.glb",bufter,transientStorage);
         //read_glb_file("assets/meshes/Creatures/Poisson1.glb",bufter,transientStorage);
-        //sort_glb_file(*bufter);
+        //sort_glb_file(*bufter);f
         
         //------Testing node stuff------//
         int bloppyId=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
