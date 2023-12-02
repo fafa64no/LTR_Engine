@@ -140,6 +140,14 @@ enum SceneReadingState{
 
     MESH_READING_STATE_COUNT
 };
+enum ComponentType{
+    SIGNED_BYTE_COMPONENT,
+    UNSIGNED_BYTE_COMPONENT,
+    SIGNED_SHORT_COMPONENT,
+    UNSIGNED_SHORT_COMPONENT,
+    UNSIGNED_INT_COMPONENT,
+    FLOAT_COMPONENT
+};
 enum AccessorType{
     SCALAR,
     VEC2,
@@ -147,6 +155,19 @@ enum AccessorType{
     VEC4,
     UNKNOWN_ACCESSOR_TYPE,
     ACCESSOR_TYPE_COUNT
+};
+enum SamplerInterpolation{
+    UNKNOWN_INTERPOLATION,
+    STEP_INTERPOLATION,
+    LINEAR_INTERPOLATION,
+    SAMPLER_INTERPOLATION_COUNT
+};
+enum AnimationTargetType{
+    UNKNOWN_ANIMATION_TARGET,
+    TRANSLATION_ANIMATION_TARGET,
+    ROTATION_ANIMATION_TARGET,
+    SCALE_ANIMATION_TARGET,
+    ANIMATION_TARGET_COUNT
 };
 
 struct Buffer{
@@ -166,18 +187,39 @@ struct Accessor{
     unsigned int count;
     AccessorType type;
 };
+struct MaterialConstructor{};
+struct SkinConstructor{};
 struct MeshConstructor{
     Accessor* positions;
     Accessor* normal;
     Accessor* texcoord;
     Accessor* indices;
+    MaterialConstructor* material;
 };
-struct MeshNodeConstructor{
+struct NodeConstructor{
     char name[16]={0};
     MeshConstructor* meshConstructor;
+    NodeConstructor** children;
+    unsigned int childCount;
     glm::vec3 translation;
     glm::vec4 rotation;
     glm::vec3 scale;
+};
+struct SamplerConstructor{
+    Accessor* input;
+    Accessor* output;
+    SamplerInterpolation interpolation=UNKNOWN_INTERPOLATION;
+};
+struct ChannelConstructor{
+    SamplerConstructor* sampler;
+    NodeConstructor* targetNode;
+    AnimationTargetType targetType=UNKNOWN_ANIMATION_TARGET;
+};
+struct AnimationConstructor{
+    ChannelConstructor** channels;
+    unsigned int channelCount;
+    SamplerConstructor** samplers;
+    unsigned int samplerCount;
 };
 
 long long get_timestamp(char* file){
@@ -410,8 +452,11 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
             Buffer* &buffers,                           int &buffersCount,
             BufferView* &bufferViews,                   int &bufferViewsCount,
             Accessor* &accessors,                       int &accessorCount,
+            SkinConstructor* &skinConstructors,         int &skinConstructorCount,
+            MaterialConstructor* &materialConstructors, int &materialConstructorCount,
             MeshConstructor* &meshConstructors,         int &meshConstructorCount,
-            MeshNodeConstructor* &nodeConstructors,     int &nodeConstructorCount){
+            NodeConstructor* &nodeConstructors,         int &nodeConstructorCount,
+            AnimationConstructor* &animationConstrucors,int &animationConstructorCount){
     SM_TRACE("Searching glb structure...");
     int nodesPosInJSON{-1},
         meshesPosInJSON{-1},
@@ -426,8 +471,11 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
     buffersCount=0;
     bufferViewsCount=0;
     accessorCount=0;
+    skinConstructorCount=0;
+    materialConstructorCount=0;
     meshConstructorCount=0;
     nodeConstructorCount=0;
+    animationConstructorCount=0;
     //Get JSON positions
     for(int i=0;i<buffer.size();i++){
         switch(currentReadingState){
@@ -505,9 +553,10 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
                     }case '[': case '{':{
                         incrementDepth++;
                         if(incrementDepth==3){
-                            disp_chars(&buffer[i],64);
                             nodeConstructorCount++;
                         }
+                        break;
+                    }case '"':{
                         break;
                     }
                 }break;
@@ -591,7 +640,7 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
                     }case '[': case '{':{
                         incrementDepth++;
                         if(incrementDepth==3){
-                            //buffersCount++;
+                            animationConstructorCount++;
                         }
                         break;
                     }
@@ -608,7 +657,7 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
                     }case '[': case '{':{
                         incrementDepth++;
                         if(incrementDepth==3){
-                            //buffersCount++;
+                            materialConstructorCount++;
                         }
                         break;
                     }
@@ -625,7 +674,7 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
                     }case '[': case '{':{
                         incrementDepth++;
                         if(incrementDepth==3){
-                            //buffersCount++;
+                            skinConstructorCount++;
                         }
                         break;
                     }
@@ -637,8 +686,8 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
     bufferViews=(BufferView*)bump_alloc(bumpAllocator,sizeof(BufferView)*bufferViewsCount);
     accessors=(Accessor*)bump_alloc(bumpAllocator,sizeof(Accessor)*accessorCount);
     meshConstructors=(MeshConstructor*)bump_alloc(bumpAllocator,sizeof(MeshConstructor)*meshConstructorCount);
-    nodeConstructors=(MeshNodeConstructor*)bump_alloc(bumpAllocator,sizeof(MeshNodeConstructor)*nodeConstructorCount);
-    int static posId;
+    nodeConstructors=(NodeConstructor*)bump_alloc(bumpAllocator,sizeof(NodeConstructor)*nodeConstructorCount);
+    int posId;
     SM_TRACE("Reading buffer structure...");
     //Get buffer data structure
     incrementDepth=2;posId=0;
@@ -775,7 +824,6 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
                 break;
             }case '[':case '{':{
                 incrementDepth++;
-                disp_chars(&buffer[i],64);
                 if(incrementDepth==3)posId++;
                 break;
             }case '"':{
@@ -799,13 +847,13 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
                     i+=9;
                     nodeConstructors[posId-1].scale=read_vec3(buffer,i);
                     i--;
+                }else if(strncmp(&buffer[i+1],"children",5)==0){
+
                 }
             }
         }
     }
 }
-
-
 
 // ############################################################################
 //                            Debug

@@ -28,8 +28,14 @@ static PFNGLACTIVETEXTUREPROC glActiveTexture_ptr;
 static PFNGLBUFFERSUBDATAPROC glBufferSubData_ptr;
 static PFNGLDRAWARRAYSINSTANCEDPROC glDrawArraysInstanced_ptr;
 static PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer_ptr;
+static PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer_ptr;
 static PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus_ptr;
 static PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers_ptr;
+static PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers_ptr;
+static PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage_ptr;
+static PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer_ptr;
+static PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer_ptr;
+static PFNGLBLITNAMEDFRAMEBUFFERPROC glBlitNamedFramebuffer_ptr;
 static PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D_ptr;
 static PFNGLDRAWBUFFERSPROC glDrawBuffers_ptr;
 static PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers_ptr;
@@ -86,8 +92,14 @@ void load_gl_functions()
   glBufferSubData_ptr = (PFNGLBUFFERSUBDATAPROC) platform_load_gl_function("glBufferSubData");
   glDrawArraysInstanced_ptr = (PFNGLDRAWARRAYSINSTANCEDPROC) platform_load_gl_function("glDrawArraysInstanced");
   glBindFramebuffer_ptr = (PFNGLBINDFRAMEBUFFERPROC) platform_load_gl_function("glBindFramebuffer");
+  glBindRenderbuffer_ptr = (PFNGLBINDRENDERBUFFERPROC) platform_load_gl_function("glBindRenderbuffer");
   glCheckFramebufferStatus_ptr = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) platform_load_gl_function("glCheckFramebufferStatus");
   glGenFramebuffers_ptr = (PFNGLGENFRAMEBUFFERSPROC) platform_load_gl_function("glGenFramebuffers");
+  glGenRenderbuffers_ptr = (PFNGLGENRENDERBUFFERSPROC) platform_load_gl_function("glGenRenderbuffers");
+  glRenderbufferStorage_ptr = (PFNGLRENDERBUFFERSTORAGEPROC) platform_load_gl_function("glRenderbufferStorage");
+  glFramebufferRenderbuffer_ptr = (PFNGLFRAMEBUFFERRENDERBUFFERPROC) platform_load_gl_function("glFramebufferRenderbuffer");
+  glBlitFramebuffer_ptr = (PFNGLBLITFRAMEBUFFERPROC) platform_load_gl_function("glBlitFramebuffer");
+  glBlitNamedFramebuffer_ptr = (PFNGLBLITNAMEDFRAMEBUFFERPROC) platform_load_gl_function("glBlitNamedFramebuffer");
   glFramebufferTexture2D_ptr = (PFNGLFRAMEBUFFERTEXTURE2DPROC) platform_load_gl_function("glFramebufferTexture2D");
   glDrawBuffers_ptr = (PFNGLDRAWBUFFERSPROC) platform_load_gl_function("glDrawBuffers");
   glDeleteFramebuffers_ptr = (PFNGLDELETEFRAMEBUFFERSPROC) platform_load_gl_function("glDeleteFramebuffers");
@@ -212,6 +224,11 @@ void glBindFramebuffer(GLenum target, GLuint framebuffer)
     glBindFramebuffer_ptr(target, framebuffer);
 }
 
+void glBindRenderbuffer(GLenum target, GLuint renderbuffer)
+{
+    glBindRenderbuffer_ptr(target, renderbuffer);
+}
+
 GLenum glCheckFramebufferStatus(GLenum target)
 {
     return glCheckFramebufferStatus_ptr(target);
@@ -220,6 +237,31 @@ GLenum glCheckFramebufferStatus(GLenum target)
 void glGenFramebuffers(GLsizei n, GLuint* framebuffers)
 {
     glGenFramebuffers_ptr(n, framebuffers);
+}
+
+void glGenRenderbuffers(GLsizei n, GLuint* renderbuffers)
+{
+    glGenRenderbuffers_ptr(n, renderbuffers);
+}
+
+void glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
+{
+    glRenderbufferStorage_ptr(target, internalformat, width, height);
+}
+
+void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
+{
+    glFramebufferRenderbuffer_ptr(target, attachment, renderbuffertarget, renderbuffer);
+}
+
+void glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
+{
+    glBlitFramebuffer_ptr(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+}
+
+void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
+{
+    glBlitNamedFramebuffer_ptr(readFramebuffer, drawFramebuffer, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
 }
 
 void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)

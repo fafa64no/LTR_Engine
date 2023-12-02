@@ -202,7 +202,7 @@ namespace RenderInterface{
         this->shader->use();
         ((RenderData*)renderData)->currentCamera->updateDir(input->mouseDir);
         glm::mat4 viewMat=((RenderData*)renderData)->currentCamera->viewMat();
-        glm::mat4 projMat=glm::perspective(glm::radians(45.0f), (float)input->screenSize.x/(float)input->screenSize.y, 0.1f, 100.0f);
+        glm::mat4 projMat=glm::perspective(glm::radians(45.0f),(float)input->screenSize.x/(float)input->screenSize.y, 0.1f, 100.0f);
         glm::mat4 modelMat=glm::mat4(1.0f);
         modelMat=glm::translate(modelMat,this->position);
         //modelMat=modelMat*this->rotation;
@@ -233,31 +233,34 @@ namespace RenderInterface{
         std::vector<char>* buffer;
         read_glb_file(scenePath,buffer,persistentStorage);
         int binStart{-1};
-        int bufferCount,    bufferViewCount,            accessorCount,          meshConstructorCount,               meshNodeConstructorCount{0};
-        Buffer* buffers;    BufferView* bufferViews;    Accessor* accessors;    MeshConstructor* meshConstructors;  MeshNodeConstructor* meshNodeConstructors;
+        int bufferCount{0}, bufferViewCount{0},         accessorCount{0},       skinConstructorCount{0},            materialConstructorCount{0},                meshConstructorCount{0},            nodeConstructorCount{0},            animationConstructorCount{0};
+        Buffer* buffers;    BufferView* bufferViews;    Accessor* accessors;    SkinConstructor* skinConstructors;  MaterialConstructor* materialConstructors;  MeshConstructor* meshConstructors;  NodeConstructor* nodeConstructors;  AnimationConstructor* animationConstructors;
         get_glb_structure(transientStorage,
                             *buffer,                binStart,
                             buffers,                bufferCount,
                             bufferViews,            bufferViewCount,
                             accessors,              accessorCount,
+                            skinConstructors,       skinConstructorCount,
+                            materialConstructors,   materialConstructorCount,
                             meshConstructors,       meshConstructorCount,
-                            meshNodeConstructors,   meshNodeConstructorCount);
+                            nodeConstructors,       nodeConstructorCount,
+                            animationConstructors,  animationConstructorCount);
         int incrementDepth{1};
         //Build scene
         SM_TRACE("Building scene");
-        SM_TRACE((char*)std::to_string(meshNodeConstructorCount).c_str());
-        this->nodeCount=meshNodeConstructorCount;
+        SM_TRACE((char*)std::to_string(nodeConstructorCount).c_str());
+        this->nodeCount=nodeConstructorCount;
         this->nodes=(Node**)bump_alloc(persistentStorage,sizeof(Node*)*this->nodeCount);
-        for(int i=0;i<meshNodeConstructorCount;i++){
+        for(int i=0;i<nodeConstructorCount;i++){
             //Build nodes
             this->nodes[i]=new Node(
-                meshNodeConstructors[i].translation,
-                meshNodeConstructors[i].rotation,
-                meshNodeConstructors[i].scale
+                nodeConstructors[i].translation,
+                nodeConstructors[i].rotation,
+                nodeConstructors[i].scale
             );
-            strcpy(this->nodes[i]->name,meshNodeConstructors[i].name);
+            strcpy(this->nodes[i]->name,nodeConstructors[i].name);
             //Build meshes
-            if(meshNodeConstructors[i].meshConstructor)this->nodes[i]->mesh=new Mesh(meshNodeConstructors[i].meshConstructor,(char*)&buffer[0][binStart],type);
+            if(nodeConstructors[i].meshConstructor)this->nodes[i]->mesh=new Mesh(nodeConstructors[i].meshConstructor,(char*)&buffer[0][binStart],type);
         }
     }
     const unsigned int Scene::getNodeCount(){

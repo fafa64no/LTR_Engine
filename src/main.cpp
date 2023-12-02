@@ -49,7 +49,7 @@ int main(){
     //Window creation
     SM_TRACE("Creating window");
     platform_fill_keycode_lookup_table();
-    platform_create_window(1200,700,"LTR Engine");
+    platform_create_window(1280,720,"LTR Engine");
 
     //Libs
     SM_TRACE("Initialising OpenGL");

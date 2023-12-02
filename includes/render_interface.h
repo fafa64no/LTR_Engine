@@ -25,6 +25,34 @@ namespace RenderInterface{
         glm::vec2 TexCoords;
         glm::vec3 Normal;
     };
+    struct Vertex_PN{
+        glm::vec3 position;
+        glm::vec3 normal;
+    };
+    struct Vertex_PNT{
+        glm::vec3 position;
+        glm::vec3 normal;
+        glm::vec3 texCoords0;
+    };
+    struct Vertex_PNC{
+        glm::vec3 position;
+        glm::vec3 normal;
+        glm::vec3 color0;
+    };
+    struct Vertex_PNCT{
+        glm::vec3 position;
+        glm::vec3 normal;
+        glm::vec3 color0;
+        glm::vec2 texCoords0;
+    };
+    struct Vertex_PNCTJW{
+        glm::vec3 position;
+        glm::vec3 normal;
+        glm::vec3 color0;
+        glm::vec3 texCoords0;
+        glm::vec3 joints0;
+        glm::vec3 weights0;
+    };
 
     // ############################################################################
     //                            OpenGL Stuff
