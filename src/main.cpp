@@ -1,10 +1,6 @@
 
 #include "LTR_Engine_lib.h"
-#include "input.h"
-#include "game.h"
-#include "zone.h"
 
-#include "render_interface.h"
 #define APIENTRY
 #define GL_GLEXT_PROTOTYPES
 #include "glcorearb.h"
@@ -20,6 +16,11 @@
 // ############################################################################
 //                            Cross Platform Functions
 // ############################################################################
+#include "input.h"
+#include "game.h"
+#include "zone.h"
+#include "render_interface.h"
+
 #include "gl_renderer.cpp"
 #include "scenes.h"
 #include "render_interface.cpp"
@@ -49,7 +50,7 @@ int main(){
     //Window creation
     SM_TRACE("Creating window");
     platform_fill_keycode_lookup_table();
-    platform_create_window(1200,700,"LTR Engine");
+    platform_create_window(1280,720,"LTR Engine");
 
     //Libs
     SM_TRACE("Initialising OpenGL");

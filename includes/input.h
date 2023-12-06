@@ -96,13 +96,13 @@ struct Key{
 
 struct Input{
     glm::ivec2 screenSize;
-    
+    glm::ivec2 maxScreenSize;
     //Mouse
     glm::ivec2 prevMousePos;
     glm::ivec2 mousePos;
     glm::ivec2 relMouse;
     glm::vec2 mouseDir;
-
+    //Keys
     Key keys[KEY_COUNT];
     KeyCodeID keyBindings[CONTROLS_COUNT];
 };

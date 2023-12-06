@@ -4,8 +4,12 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "platform.h"
 
 static RenderInterface::Shader* testShader;
+static RenderInterface::Shader* frameQuadShader;
+static RenderInterface::Shader* diffuseShader;
+static RenderInterface::Shader* dirShadowShader;
 static RenderInterface::Texture* faridTexture;
 // #############################################################################
 //                           OpenGL Function Pointers
@@ -28,8 +32,14 @@ static PFNGLACTIVETEXTUREPROC glActiveTexture_ptr;
 static PFNGLBUFFERSUBDATAPROC glBufferSubData_ptr;
 static PFNGLDRAWARRAYSINSTANCEDPROC glDrawArraysInstanced_ptr;
 static PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer_ptr;
+static PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer_ptr;
 static PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus_ptr;
 static PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers_ptr;
+static PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers_ptr;
+static PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage_ptr;
+static PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer_ptr;
+static PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer_ptr;
+static PFNGLBLITNAMEDFRAMEBUFFERPROC glBlitNamedFramebuffer_ptr;
 static PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D_ptr;
 static PFNGLDRAWBUFFERSPROC glDrawBuffers_ptr;
 static PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers_ptr;
@@ -64,6 +74,7 @@ static PFNGLDELETESHADERPROC glDeleteShader_ptr;
 static PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced_ptr;
 static PFNGLGENERATEMIPMAPPROC glGenerateMipmap_ptr;
 static PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback_ptr;
+static PFNGLREADBUFFERPROC glReadBuffer_ptr;
 
 
 void load_gl_functions()
@@ -86,8 +97,14 @@ void load_gl_functions()
   glBufferSubData_ptr = (PFNGLBUFFERSUBDATAPROC) platform_load_gl_function("glBufferSubData");
   glDrawArraysInstanced_ptr = (PFNGLDRAWARRAYSINSTANCEDPROC) platform_load_gl_function("glDrawArraysInstanced");
   glBindFramebuffer_ptr = (PFNGLBINDFRAMEBUFFERPROC) platform_load_gl_function("glBindFramebuffer");
+  glBindRenderbuffer_ptr = (PFNGLBINDRENDERBUFFERPROC) platform_load_gl_function("glBindRenderbuffer");
   glCheckFramebufferStatus_ptr = (PFNGLCHECKFRAMEBUFFERSTATUSPROC) platform_load_gl_function("glCheckFramebufferStatus");
   glGenFramebuffers_ptr = (PFNGLGENFRAMEBUFFERSPROC) platform_load_gl_function("glGenFramebuffers");
+  glGenRenderbuffers_ptr = (PFNGLGENRENDERBUFFERSPROC) platform_load_gl_function("glGenRenderbuffers");
+  glRenderbufferStorage_ptr = (PFNGLRENDERBUFFERSTORAGEPROC) platform_load_gl_function("glRenderbufferStorage");
+  glFramebufferRenderbuffer_ptr = (PFNGLFRAMEBUFFERRENDERBUFFERPROC) platform_load_gl_function("glFramebufferRenderbuffer");
+  glBlitFramebuffer_ptr = (PFNGLBLITFRAMEBUFFERPROC) platform_load_gl_function("glBlitFramebuffer");
+  glBlitNamedFramebuffer_ptr = (PFNGLBLITNAMEDFRAMEBUFFERPROC) platform_load_gl_function("glBlitNamedFramebuffer");
   glFramebufferTexture2D_ptr = (PFNGLFRAMEBUFFERTEXTURE2DPROC) platform_load_gl_function("glFramebufferTexture2D");
   glDrawBuffers_ptr = (PFNGLDRAWBUFFERSPROC) platform_load_gl_function("glDrawBuffers");
   glDeleteFramebuffers_ptr = (PFNGLDELETEFRAMEBUFFERSPROC) platform_load_gl_function("glDeleteFramebuffers");
@@ -122,6 +139,7 @@ void load_gl_functions()
   glDrawElementsInstanced_ptr = (PFNGLDRAWELEMENTSINSTANCEDPROC) platform_load_gl_function("glDrawElementsInstanced");
   glGenerateMipmap_ptr = (PFNGLGENERATEMIPMAPPROC) platform_load_gl_function("glGenerateMipmap");
   glDebugMessageCallback_ptr = (PFNGLDEBUGMESSAGECALLBACKPROC)platform_load_gl_function("glDebugMessageCallback");
+  glReadBuffer_ptr = (PFNGLREADBUFFERPROC)platform_load_gl_function("glReadBuffer");
 }
 
 // #############################################################################
@@ -212,6 +230,11 @@ void glBindFramebuffer(GLenum target, GLuint framebuffer)
     glBindFramebuffer_ptr(target, framebuffer);
 }
 
+void glBindRenderbuffer(GLenum target, GLuint renderbuffer)
+{
+    glBindRenderbuffer_ptr(target, renderbuffer);
+}
+
 GLenum glCheckFramebufferStatus(GLenum target)
 {
     return glCheckFramebufferStatus_ptr(target);
@@ -220,6 +243,31 @@ GLenum glCheckFramebufferStatus(GLenum target)
 void glGenFramebuffers(GLsizei n, GLuint* framebuffers)
 {
     glGenFramebuffers_ptr(n, framebuffers);
+}
+
+void glGenRenderbuffers(GLsizei n, GLuint* renderbuffers)
+{
+    glGenRenderbuffers_ptr(n, renderbuffers);
+}
+
+void glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)
+{
+    glRenderbufferStorage_ptr(target, internalformat, width, height);
+}
+
+void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)
+{
+    glFramebufferRenderbuffer_ptr(target, attachment, renderbuffertarget, renderbuffer);
+}
+
+void glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
+{
+    glBlitFramebuffer_ptr(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+}
+
+void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)
+{
+    glBlitNamedFramebuffer_ptr(readFramebuffer, drawFramebuffer, srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
 }
 
 void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level)
@@ -391,116 +439,10 @@ void glDebugMessageCallback (GLDEBUGPROC callback, const void *userParam)
 {
   glDebugMessageCallback_ptr(callback, userParam);
 }
- 
-// Loaded by default, kept it here just in case
-/*
-static PFNGLTEXIMAGE2DPROC glTexImage2D_ptr;
-static PFNGLTEXPARAMETERIPROC glTexParameteri_ptr;
-static PFNGLTEXPARAMETERFVPROC glTexParameterfv_ptr;
-static PFNGLCLEARPROC glClear_ptr;
-static PFNGLCLEARCOLORPROC glClearColor_ptr;
-static PFNGLREADBUFFERPROC glReadBuffer_ptr;
-static PFNGLDEPTHMASKPROC glDepthMask_ptr;
-static PFNGLDISABLEPROC glDisable_ptr;
-static PFNGLENABLEPROC glEnable_ptr;
-static PFNGLSCISSORPROC glScissor_ptr;
-static PFNGLVIEWPORTPROC glViewport_ptr;
-static PFNGLDEPTHFUNCPROC glDepthFunc_ptr;
-static PFNGLCULLFACEPROC glCullFace_ptr;
-static PFNGLBLENDFUNCPROC glBlendFunc_ptr;
-static PFNGLFRONTFACEPROC glFrontFace_ptr;
- 
-glTexImage2D_ptr = (PFNGLTEXIMAGE2DPROC)platform_load_gl_function("glTexImage2D");
-glTexParameteri_ptr = (PFNGLTEXPARAMETERIPROC)platform_load_gl_function("glTexParameteri");
-glTexParameterfv_ptr = (PFNGLTEXPARAMETERFVPROC)platform_load_gl_function("glTexParameterfv");
-glClear_ptr = (PFNGLCLEARPROC)platform_load_gl_function("glClear");
-glClearColor_ptr = (PFNGLCLEARCOLORPROC)platform_load_gl_function("glClearColor");
-glReadBuffer_ptr = (PFNGLREADBUFFERPROC)platform_load_gl_function("glReadBuffer");
-glDepthMask_ptr = (PFNGLDEPTHMASKPROC)platform_load_gl_function("glDepthMask");
-glDisable_ptr = (PFNGLDISABLEPROC)platform_load_gl_function("glDisable");
-glEnable_ptr = (PFNGLENABLEPROC)platform_load_gl_function("glEnable");
-glScissor_ptr = (PFNGLSCISSORPROC)platform_load_gl_function("glScissor");
-glViewport_ptr = (PFNGLVIEWPORTPROC)platform_load_gl_function("glViewport");
-glDepthFunc_ptr = (PFNGLDEPTHFUNCPROC)platform_load_gl_function("glDepthFunc");
-glCullFace_ptr = (PFNGLCULLFACEPROC)platform_load_gl_function("glCullFace");
-glBlendFunc_ptr = (PFNGLBLENDFUNCPROC)platform_load_gl_function("glBlendFunc");
-glFrontFace_ptr = (PFNGLFRONTFACEPROC)platform_load_gl_function("glFrontFace");
- 
-GLAPI void APIENTRY glTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width,
-                                  GLsizei height, GLint border, GLenum format, GLenum type,
-                                  const void *pixels)
+
+void glReadBuffer (GLenum mode)
 {
-  glTexImage2D_ptr(target, level, internalformat, width, height,
-                   border, format, type, pixels);
+  glReadBuffer_ptr(mode);
 }
  
-GLAPI void APIENTRY glTexParameteri (GLenum target, GLenum pname, GLint param)
-{
-  glTexParameteri_ptr(target, pname, param);
-}
- 
-GLAPI void APIENTRY glTexParameterfv (GLenum target, GLenum pname, const GLfloat *params)
-{
-  glTexParameterfv_ptr(target, pname, params);
-}
- 
-GLAPI void APIENTRY glClear (GLbitfield mask)
-{
-  glClear_ptr(mask);
-}
- 
-GLAPI void APIENTRY glClearColor (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
-{
-  glClearColor_ptr(red, green, blue, alpha);
-}
- 
-void glReadBuffer(GLenum mode)
-{
-    glReadBuffer_ptr(mode);
-}
- 
-void glDepthMask(GLboolean flag)
-{
-    glDepthMask_ptr(flag);
-}
- 
-void glDisable(GLenum cap)
-{
-    glDisable_ptr(cap);
-}
- 
-void glEnable(GLenum cap)
-{
-    glEnable_ptr(cap);
-}
- 
-void glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
-{
-    glScissor_ptr(x, y, width, height);
-}
- 
-void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
-{
-    glViewport_ptr(x, y, width, height);
-}
- 
-void glDepthFunc(GLenum func)
-{
-    glDepthFunc_ptr(func);
-}
- 
-void glCullFace(GLenum mode)
-{
-    glCullFace_ptr(mode);
-}
- 
-void glBlendFunc(GLenum sfactor, GLenum dfactor)
-{
-    glBlendFunc_ptr(sfactor, dfactor);
-}
- 
-void glFrontFace(GLenum mode)
-{
-    glFrontFace_ptr(mode);
-}
-*/
+

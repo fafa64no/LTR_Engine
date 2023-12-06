@@ -17,6 +17,8 @@ in vec3 LightPos;
 uniform sampler2D textureUsed;
 
 uniform vec3 ambientLight;
+uniform vec3 directionalLightColor;
+uniform vec3 directionalLightDir;
 uniform vec3 diffuseLightColor;
 uniform float diffuseLightStrength;
 uniform float diffuseLightRange;
@@ -47,7 +49,7 @@ void main(){
         *vec4(
             ambientLight*material.ambient
             +diffuseResult*material.diffuse
-            +specularResult*material.shininess
+            //+specularResult*material.shininess
             ,1.0);
     FragColor=textureColor;
 }

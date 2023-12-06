@@ -25,6 +25,34 @@ namespace RenderInterface{
         glm::vec2 TexCoords;
         glm::vec3 Normal;
     };
+    struct Vertex_PN{
+        glm::vec3 position;
+        glm::vec3 normal;
+    };
+    struct Vertex_PNT{
+        glm::vec3 position;
+        glm::vec3 normal;
+        glm::vec3 texCoords0;
+    };
+    struct Vertex_PNC{
+        glm::vec3 position;
+        glm::vec3 normal;
+        glm::vec3 color0;
+    };
+    struct Vertex_PNCT{
+        glm::vec3 position;
+        glm::vec3 normal;
+        glm::vec3 color0;
+        glm::vec2 texCoords0;
+    };
+    struct Vertex_PNCTJW{
+        glm::vec3 position;
+        glm::vec3 normal;
+        glm::vec3 color0;
+        glm::vec3 texCoords0;
+        glm::vec3 joints0;
+        glm::vec3 weights0;
+    };
 
     // ############################################################################
     //                            OpenGL Stuff
@@ -39,6 +67,7 @@ namespace RenderInterface{
         void setFloat(const std::string &name,float value) const;
         void setMat4(const std::string &name,glm::mat4 value) const;
         void setVec3(const std::string &name,glm::vec3 value) const;
+        void setVec2(const std::string &name,glm::vec2 value) const;
     };
     class Texture{
     public:
@@ -74,7 +103,8 @@ namespace RenderInterface{
         Mesh(MeshConstructor* meshConstructor,char* buffer,unsigned int type);
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
-        void Draw(Shader &shader);
+        void Draw();
+        void CastShadow();
     private:
         unsigned int VAO,VBO,EBO;
         void setupMesh();
@@ -84,10 +114,12 @@ namespace RenderInterface{
     public:
         Node(glm::vec3 position,glm::vec4 rotation,glm::vec3 scale);
         Node(glm::vec3 position,glm::vec4 rotation,glm::vec3 scale,Mesh* mesh,Texture* texture,Shader* shader);
+        Node(glm::vec3 position,glm::vec4 rotation,glm::vec3 scale,Mesh* mesh,Texture* texture,Shader* shader,glm::vec3 color);
         Mesh* mesh;
         Texture* texture;
         Shader* shader;
         void Draw(void* renderData);
+        void CastShadow(Shader &shader,void* renderData);
         char name[16]={0};
         void translate(glm::vec3 translation);
         void rotate(glm::vec4 rotation);
@@ -98,6 +130,7 @@ namespace RenderInterface{
         glm::vec3 position;
         glm::mat4 rotation;
         glm::vec3 scale;
+        glm::vec3 color;
     };
     class Scene{
     public:
@@ -128,8 +161,7 @@ namespace RenderInterface{
     };
     struct RenderData{
         Camera* currentCamera;
-        //Transform2D* transforms_to_render_2D[MAX_2D_TRANSFORMS];
-        //int transformCount=0;
+        glm::mat4 viewMat,projMat;
         Node* nodes_to_render[MAX_NODES_TO_RENDER];
         unsigned int nodeCount=0;
     };

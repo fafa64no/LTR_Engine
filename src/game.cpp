@@ -13,71 +13,44 @@ static float playerSpeed=0.1f;
 // ############################################################################
 void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     reset_key_bindings(input);
-    init_zones();
+    Zones::init_zones(persistentStorage);
 
     gameData->is_running=true;
     gameData->is_paused=false;
     gameData->can_move_mouse=false;
     gameData->can_move_mouse_toggled=false;
-    gameData->currentZone=testZone;
+    gameData->currentBiome=Zones::testBiome;
+    gameData->currentRegion=Zones::testRegion;
+    gameData->currentRegion->Draw();
 
     {
         //------Testing glb stuff------//
         //std::vector<char>* bufter;
-        //read_glb_file("assets/meshes/BasicShapes/testShape.glb",bufter,transientStorage);
+        //read_glb_file("assets/meshes/Decor/baseDecor.glb",bufter,transientStorage);
         //read_glb_file("assets/meshes/Creatures/Poisson1.glb",bufter,transientStorage);
         //sort_glb_file(*bufter);
-        
-        //------Testing node stuff------//
-        int bloppyId=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
-            glm::vec3(3.0f,1.0f,2.0f),
-            glm::vec4(0.0f,0.0f,0.0f,0.0f),
-            glm::vec3(1.0f,1.0f,1.0f),
-            Scenes::meshList[Scenes::MESHID_BLOPPY],
-            faridTexture,
-            testShader
-        ));
-        int bloppyRenderId=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[bloppyId]);
+        {
+            //------Testing node stuff------//
+            int bloppyId=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
+                glm::vec3(3.0f,1.0f,2.0f),
+                glm::vec4(0.0f,0.0f,0.0f,0.0f),
+                glm::vec3(1.0f,1.0f,1.0f),
+                Scenes::meshList[Scenes::MESHID_BLOPPY],
+                faridTexture,
+                testShader
+            ));
+            int bloppyRenderId=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[bloppyId]);
 
-        int icoId=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
-            glm::vec3(-6.0f,2.0f,-4.0f),
-            glm::vec4(0.0f,0.0f,0.0f,0.0f),
-            glm::vec3(1.0f,1.0f,1.0f),
-            Scenes::meshList[Scenes::MESHID_SPACESHIP],
-            faridTexture,
-            testShader
-        ));
-        int icoRenderId=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[icoId]);
-
-        int dfdfsfsd=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
-            glm::vec3(-1.0f,-3.0f,-2.0f),
-            glm::vec4(0.0f,0.0f,0.0f,0.0f),
-            glm::vec3(1.0f,1.0f,1.0f),
-            Scenes::meshList[Scenes::MESHID_ICOSPHERE],
-            faridTexture,
-            testShader
-        ));
-        int sqd=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[dfdfsfsd]);
-
-        int qs=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
-            glm::vec3(-4.0f,10.2f,-3.0f),
-            glm::vec4(0.0f,0.0f,0.0f,0.0f),
-            glm::vec3(5.0f,5.0f,5.0f),
-            Scenes::meshList[Scenes::MESHID_PWASCEONAIN],
-            faridTexture,
-            testShader
-        ));
-        int fgh=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[qs]);
-
-        int qsdfadfsdf=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
-            glm::vec3(-5.0f,1.0f,2.0f),
-            glm::vec4(0.0f,0.0f,0.0f,0.0f),
-            glm::vec3(1.0f,1.0f,1.0f),
-            Scenes::meshList[Scenes::MESHID_BLOPPY],
-            woodTexture,
-            testShader
-        ));
-        int ertryututyu=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[qsdfadfsdf]);
+            int qs=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
+                glm::vec3(-4.0f,10.2f,-3.0f),
+                glm::vec4(0.0f,0.0f,0.0f,0.0f),
+                glm::vec3(5.0f,5.0f,5.0f),
+                Scenes::meshList[Scenes::MESHID_PWASCEONAIN],
+                faridTexture,
+                testShader
+            ));
+            int fgh=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[qs]);
+        }
     }
 }
 void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
@@ -100,10 +73,10 @@ void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorag
         RenderInterface::renderData->currentCamera->updatePos(RenderInterface::renderData->currentCamera->camPos);
         //Light
         if(key_pressed_this_frame(input->keyBindings[FULLBRIGHT_KEY])){
-            if(gameData->currentZone==testZone){
-                gameData->currentZone=fullBrightZone;
+            if(gameData->currentBiome!=Zones::fullBrightBiome){
+                gameData->currentBiome=Zones::fullBrightBiome;
             }else{
-                gameData->currentZone=testZone;
+                gameData->currentBiome=Zones::testBiome;
             }
         }
     }

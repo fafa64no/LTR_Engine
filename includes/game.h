@@ -13,7 +13,8 @@ struct GameData{
     bool is_paused;
     bool can_move_mouse;
     bool can_move_mouse_toggled;
-    Zone* currentZone;
+    Zones::Biome* currentBiome;
+    Zones::Region* currentRegion;
 };
 static GameData* gameData;
 

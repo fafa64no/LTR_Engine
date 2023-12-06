@@ -299,7 +299,9 @@ void* platform_load_gl_function(char* funName){
         static HMODULE openglDLL=LoadLibraryA((LPCSTR)"opengl32.dll");
         proc=GetProcAddress(openglDLL,funName);
         if (!proc){
-            SM_ASSERT(false,"Failed to load: %s",funName);
+            char msg[64]{0};
+            sprintf(msg,"Failed to load: %s",funName);
+            SM_ASSERT(false,msg);
             return nullptr;
         }
     }
