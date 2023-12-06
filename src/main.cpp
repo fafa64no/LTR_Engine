@@ -1,10 +1,6 @@
 
 #include "LTR_Engine_lib.h"
-#include "input.h"
-#include "game.h"
-#include "zone.h"
 
-#include "render_interface.h"
 #define APIENTRY
 #define GL_GLEXT_PROTOTYPES
 #include "glcorearb.h"
@@ -20,6 +16,11 @@
 // ############################################################################
 //                            Cross Platform Functions
 // ############################################################################
+#include "input.h"
+#include "game.h"
+#include "zone.h"
+#include "render_interface.h"
+
 #include "gl_renderer.cpp"
 #include "scenes.h"
 #include "render_interface.cpp"

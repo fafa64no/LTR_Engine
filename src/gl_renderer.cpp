@@ -21,6 +21,7 @@ float frameQuadVertices[]={
      1.0f, -1.0f,  1.0f, 0.0f,
      1.0f,  1.0f,  1.0f, 1.0f
 };
+const unsigned int DIR_SHADOW_WIDTH=4096,DIR_SHADOW_HEIGHT=4096;
 
 // ############################################################################
 //                            OpenGL Structs
@@ -37,16 +38,12 @@ struct GLContext{
 // ############################################################################
 static GLContext glContext;
 
-static RenderInterface::Shader* menuShader;
-static RenderInterface::Shader* lightShader;
-static RenderInterface::Shader* frameQuadShader;
-
 static RenderInterface::Texture* ltrTexture;
 static RenderInterface::Texture* woodTexture;
 static RenderInterface::Texture* awesomeTexture;
 static unsigned int 
-    lights_VBO,lights_VAO,lights_EBO,
-    FBO,RBO,frameTexture,frameVAO,frameVBO;
+    FBO,RBO,frameTexture,frameVAO,frameVBO,
+    dirLightDepthMapFBO,dirLightDepthMap;
 
 // ############################################################################
 //                            OpenGL Functions
@@ -81,7 +78,7 @@ void gl_render_2D_layer(){
     //menuShader->use();
 }
 // ############################################################################
-void gl_render_3D_layer(glm::mat4 viewMat,glm::mat4 projMat){
+void gl_render_3D_layer(){
     glActiveTexture(GL_TEXTURE0);
     faridTexture->use();
 
@@ -91,7 +88,7 @@ void gl_render_3D_layer(glm::mat4 viewMat,glm::mat4 projMat){
 
     testShader->setVec3("viewPos",RenderInterface::renderData->currentCamera->camPos);
 
-    testShader->setVec3("ambientLight",gameData->currentZone->ambientLight);
+    testShader->setVec3("ambientLight",gameData->currentBiome->ambientLight);
     testShader->setVec3("lightPos",glm::vec3(1.0,1.0,1.0));
     testShader->setVec3("diffuseLightColor",glm::vec3(1.0,1.0,1.0));
     testShader->setFloat("diffuseLightStrength",1.3f);
@@ -103,51 +100,39 @@ void gl_render_3D_layer(glm::mat4 viewMat,glm::mat4 projMat){
     testShader->setInt("material.shininess",metal.shininess);
 
     //Scene vars
-    static float modelAngle=0.0;
-
-    testShader->setMat4("view",viewMat);
-    testShader->setMat4("proj",projMat);
-
-    for(int i=0;i<RenderInterface::renderData->nodeCount;i++){
-        RenderInterface::renderData->nodes_to_render[i]->Draw(RenderInterface::renderData);
-    }
-}
-// ############################################################################
-void gl_render_3d_lights(glm::mat4 viewMat,glm::mat4 projMat){
-    lightShader->use();
-
-    lightShader->setMat4("view",viewMat);
-    lightShader->setMat4("proj",projMat);
-
-    glm::mat4 modelMat=glm::mat4(1.0);
-    modelMat=glm::translate(modelMat,glm::vec3(1.0,1.0,1.0));
-    modelMat=glm::scale(modelMat,glm::vec3(0.2, 0.2, 0.2));
-    lightShader->setMat4("model",modelMat);
-
-    glBindVertexArray(lights_VAO);
-    glDrawElements(GL_TRIANGLES,sizeof(light_indices),GL_UNSIGNED_INT,nullptr);
+    
 }
 // ############################################################################
 void gl_render(){
     unsigned int width{(unsigned int)input->screenSize.x},height{(unsigned int)input->screenSize.y};
     unsigned short pixelation=4;
     unsigned int pixWidth{(unsigned int)width/pixelation},pixHeight{(unsigned int)height/pixelation};
+    //Render shadow map
+    glViewport(0,0,DIR_SHADOW_WIDTH,DIR_SHADOW_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER,dirLightDepthMapFBO);
+    glEnable(GL_DEPTH_TEST);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    gameData->currentBiome->updateLightSpaceMatrix();
+    for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->CastShadow(*dirShadowShader,RenderInterface::renderData);
+    glBindFramebuffer(GL_FRAMEBUFFER,0);
+    //Render view
+    glViewport(0,0,pixWidth,pixHeight);
     glBindFramebuffer(GL_FRAMEBUFFER,FBO);
     glEnable(GL_DEPTH_TEST);
-    glViewport(0,0,pixWidth,pixHeight);
     gl_clear();
-    //Camera matrix
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D,dirLightDepthMap);
     RenderInterface::renderData->currentCamera->updateDir(input->mouseDir);
-    glm::mat4 viewMat=RenderInterface::renderData->currentCamera->viewMat();
-    glm::mat4 projMat=glm::perspective(glm::radians(45.0f),(float)pixWidth/(float)pixHeight,0.1f,100.0f);
-    //Render stuff 3d
-    gl_render_3D_layer(viewMat,projMat);
-    gl_render_3d_lights(viewMat,projMat);
+    RenderInterface::renderData->viewMat=RenderInterface::renderData->currentCamera->viewMat();
+    RenderInterface::renderData->projMat=glm::perspective(glm::radians(45.0f),(float)pixWidth/(float)pixHeight,0.1f,100.0f);
+    gl_render_3D_layer();
+    for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->Draw(RenderInterface::renderData);
     glBindFramebuffer(GL_FRAMEBUFFER,0);
+    //Post processing
     glViewport(0,0,width,height);
     gl_clear();
     frameQuadShader->use();
-    frameQuadShader->setInt("pixelation",(int)pixelation);
+    frameQuadShader->setVec2("screenRatio",glm::vec2((float)pixWidth/input->maxScreenSize.x,(float)pixHeight/input->maxScreenSize.y));
     glBindVertexArray(frameVAO);
     glDisable(GL_DEPTH_TEST);
     glBindTexture(GL_TEXTURE_2D,frameTexture);
@@ -161,9 +146,9 @@ void gl_render(){
 // ############################################################################
 void gl_shaders_init(BumpAllocator* persistentStorage){
     testShader=new RenderInterface::Shader("assets/shaders/test.vert","assets/shaders/test.frag",persistentStorage);
-    //menuShader=new Shader("assets/shaders/menuShader.vert","assets/shaders/menuShader.frag",persistentStorage);
-    lightShader=new RenderInterface::Shader("assets/shaders/lightShader.vert","assets/shaders/lightShader.frag",persistentStorage);
     frameQuadShader=new RenderInterface::Shader("assets/shaders/frameQuadShader.vert","assets/shaders/frameQuadShader.frag",persistentStorage);
+    diffuseShader=new RenderInterface::Shader("assets/shaders/diffuseShader.vert","assets/shaders/diffuseShader.frag",persistentStorage);
+    dirShadowShader=new RenderInterface::Shader("assets/shaders/dirShadowShader.vert","assets/shaders/dirShadowShader.frag",persistentStorage);
 }
 void gl_textures_init(){
     ltrTexture=new RenderInterface::Texture("assets/textures/LTR.png",GL_RGBA);
@@ -172,49 +157,34 @@ void gl_textures_init(){
     awesomeTexture=new RenderInterface::Texture("assets/textures/awesomeface.png",GL_RGBA);
 }
 bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
-    SM_TRACE("ff");
     load_gl_functions();
-    SM_TRACE("ff");
     glDebugMessageCallback(&gl_debug_callback,nullptr);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
     //Init Shaders and Materials
     gl_shaders_init(persistentStorage);
     gl_materials_init();
-
-    //Generate VAO, VBO and EBO for lights
-    glGenVertexArrays(1,&lights_VAO);
-    glGenBuffers(1,&lights_VBO);
-    glGenBuffers(1,&lights_EBO);
-    glBindVertexArray(lights_VAO);
-    glBindBuffer(GL_ARRAY_BUFFER,lights_VBO);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(light_vertices),light_vertices,GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,lights_EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(light_indices),light_indices,GL_STATIC_DRAW);
-    //Vertex attribs
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)0);
-    glEnableVertexAttribArray(0); 
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)(3*sizeof(float)));
-    glEnableVertexAttribArray(1); 
-
     //Load textures
     gl_textures_init();
 
-    //Frame buffer
-    int maxWidth{input->screenSize.x},maxHeight{input->screenSize.y};
+    //Frame buffers
+    input->maxScreenSize=glm::ivec2(1980,1080);
     glGenFramebuffers(1,&FBO);
     glBindFramebuffer(GL_FRAMEBUFFER,FBO);
     glGenTextures(1,&frameTexture);
     glBindTexture(GL_TEXTURE_2D,frameTexture);
-    glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,maxWidth,maxHeight,0,GL_RGB,GL_UNSIGNED_BYTE,NULL);
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,input->maxScreenSize.x,input->maxScreenSize.y,0,GL_RGB,GL_UNSIGNED_BYTE,NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glBindTexture(GL_TEXTURE_2D,0);
     glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,frameTexture,0);
     glGenRenderbuffers(1,&RBO);
     glBindRenderbuffer(GL_RENDERBUFFER,RBO); 
-    glRenderbufferStorage(GL_RENDERBUFFER,GL_DEPTH24_STENCIL8,maxWidth,maxHeight);  
+    glRenderbufferStorage(GL_RENDERBUFFER,GL_DEPTH24_STENCIL8,input->maxScreenSize.x,input->maxScreenSize.y);  
     glBindRenderbuffer(GL_RENDERBUFFER,0);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER,GL_DEPTH_STENCIL_ATTACHMENT,GL_RENDERBUFFER,RBO);
     glGenVertexArrays(1,&frameVAO);
@@ -228,14 +198,33 @@ bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(2*sizeof(float)));
     glBindVertexArray(0);
 
-    SM_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE,"Framebuffer incomplete");
+    SM_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE,"Scene framebuffer incomplete");
+    glBindFramebuffer(GL_FRAMEBUFFER,0);
+
+    glGenFramebuffers(1,&dirLightDepthMapFBO);
+    glGenTextures(1,&dirLightDepthMap);
+    glBindTexture(GL_TEXTURE_2D,dirLightDepthMap);
+    glTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT,DIR_SHADOW_WIDTH,DIR_SHADOW_HEIGHT,0,GL_DEPTH_COMPONENT,GL_FLOAT,NULL);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_BORDER);
+    float borderShadowColor[4]{1.0f,1.0f,1.0f,1.0f};
+    glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,borderShadowColor);
+    glBindFramebuffer(GL_FRAMEBUFFER,dirLightDepthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER,GL_DEPTH_ATTACHMENT,GL_TEXTURE_2D,dirLightDepthMap,0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER,0); 
+
+    SM_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE,"Depthmap framebuffer incomplete");
     glBindFramebuffer(GL_FRAMEBUFFER,0);
 
     //Init camera
     RenderInterface::renderData->currentCamera=new RenderInterface::Camera(
-        glm::vec3(0.0,0.0,-3.0),
-        glm::vec3(1.0,0.0,0.0),
-        glm::vec3(0.0,1.0,0.0));
+        glm::vec3(0.0f,2.0f,0.0f),
+        glm::vec3(1.0f,0.0f,0.0f),
+        glm::vec3(0.0f,1.0f,0.0f));
     return true;
 }
 

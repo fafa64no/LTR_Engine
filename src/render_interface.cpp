@@ -1,6 +1,7 @@
 #include "gl_renderer.h"
 #include "LTR_Engine_lib.h"
 #include "render_interface.h"
+#include "game.h"
 
 namespace RenderInterface{
     // ############################################################################
@@ -59,6 +60,8 @@ namespace RenderInterface{
         glUniformMatrix4fv(glGetUniformLocation(programID,name.c_str()),1,GL_FALSE,glm::value_ptr(value));
     }void Shader::setVec3(const std::string &name,glm::vec3 value) const{
         glUniform3fv(glGetUniformLocation(programID,name.c_str()),1,glm::value_ptr(value));
+    }void Shader::setVec2(const std::string &name,glm::vec2 value) const{
+        glUniform2fv(glGetUniformLocation(programID,name.c_str()),1,glm::value_ptr(value));
     }
 
     // ############################################################################
@@ -171,7 +174,11 @@ namespace RenderInterface{
 
         glBindVertexArray(0);
     }
-    void Mesh::Draw(Shader &shader){
+    void Mesh::Draw(){
+        glBindVertexArray(this->VAO);
+        glDrawElements(GL_TRIANGLES,sizeof(unsigned int)*this->indices.size(),GL_UNSIGNED_INT,nullptr);
+    }
+    void Mesh::CastShadow(){
         glBindVertexArray(this->VAO);
         glDrawElements(GL_TRIANGLES,sizeof(unsigned int)*this->indices.size(),GL_UNSIGNED_INT,nullptr);
     }
@@ -195,11 +202,24 @@ namespace RenderInterface{
         this->scale=(scale.x==0)?glm::vec3(1.0f,1.0f,1.0f):scale;
         this->texture=texture;
         this->shader=shader;
+        this->color=glm::vec3(1.0f,1.0f,1.0f);
+    }
+    Node::Node(glm::vec3 position,glm::vec4 rotation,glm::vec3 scale,Mesh* mesh,Texture* texture,Shader* shader,glm::vec3 color){
+        SM_TRACE("\tBuilding node");
+        this->mesh=mesh;
+        this->position=position;
+        quatToMat(this->rotation,rotation);
+        this->scale=(scale.x==0)?glm::vec3(1.0f,1.0f,1.0f):scale;
+        this->texture=texture;
+        this->shader=shader;
+        this->color=color;
     }
     void Node::Draw(void* renderData){
         glActiveTexture(GL_TEXTURE0);
         this->texture->use();
         this->shader->use();
+        this->shader->setInt("textureUsed",0);
+        this->shader->setInt("shadowMap",1);
         ((RenderData*)renderData)->currentCamera->updateDir(input->mouseDir);
         glm::mat4 viewMat=((RenderData*)renderData)->currentCamera->viewMat();
         glm::mat4 projMat=glm::perspective(glm::radians(45.0f),(float)input->screenSize.x/(float)input->screenSize.y, 0.1f, 100.0f);
@@ -208,10 +228,28 @@ namespace RenderInterface{
         //modelMat=modelMat*this->rotation;
         modelMat=glm::scale(modelMat,this->scale);
         this->shader->setMat4("model",modelMat);
-        glm::mat4 normalMat=glm::transpose(glm::inverse(RenderInterface::renderData->currentCamera->viewMat()*modelMat));
+        this->shader->setMat4("view",((RenderData*)renderData)->viewMat);
+        this->shader->setMat4("proj",((RenderData*)renderData)->projMat);
+        glm::mat4 normalMat=glm::transpose(glm::inverse(((RenderData*)renderData)->viewMat*modelMat));
         this->shader->setMat4("normalMat",normalMat);
-        this->mesh->Draw(*this->shader);
-        for(int i=0;i<this->childrenCount;i++)this->childNode[i]->mesh->Draw(*this->shader);
+        this->shader->setVec3("meshColor",this->color);
+        this->shader->setVec3("ambientLight",gameData->currentBiome->ambientLight);
+        this->shader->setVec3("directionalLightColor",gameData->currentBiome->sunDir);
+        this->shader->setVec3("directionalLightDir",gameData->currentBiome->sunCol);
+        this->shader->setMat4("dirLightSpaceMatrix",gameData->currentBiome->getLightSpaceMatrix());
+        this->mesh->Draw();
+        for(int i=0;i<this->childrenCount;i++)this->childNode[i]->Draw(renderData);
+    }
+    void Node::CastShadow(Shader &shader,void* renderData){
+        shader.use();
+        glm::mat4 modelMat=glm::mat4(1.0f);
+        modelMat=glm::translate(modelMat,this->position);
+        //modelMat=modelMat*this->rotation;
+        modelMat=glm::scale(modelMat,this->scale);
+        shader.setMat4("model",modelMat);
+        shader.setMat4("lightSpaceMatrix",gameData->currentBiome->getLightSpaceMatrix());
+        this->mesh->CastShadow();
+        for(int i=0;i<this->childrenCount;i++)this->childNode[i]->CastShadow(shader,renderData);
     }
     void Node::translate(glm::vec3 translation){
         this->position+=translation;

@@ -2,8 +2,8 @@
 out vec4 FragColor;
 in vec2 TexCoords;
 uniform sampler2D screenTexture;
-uniform int pixelation;
+uniform vec2 screenRatio;
 
 void main(){ 
-    FragColor=texture(screenTexture,TexCoords/pixelation);
+    FragColor=texture(screenTexture,vec2(TexCoords.x*screenRatio.x,TexCoords.y*screenRatio.y));
 }

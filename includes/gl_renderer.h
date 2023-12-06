@@ -4,8 +4,12 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "platform.h"
 
 static RenderInterface::Shader* testShader;
+static RenderInterface::Shader* frameQuadShader;
+static RenderInterface::Shader* diffuseShader;
+static RenderInterface::Shader* dirShadowShader;
 static RenderInterface::Texture* faridTexture;
 // #############################################################################
 //                           OpenGL Function Pointers
@@ -70,6 +74,7 @@ static PFNGLDELETESHADERPROC glDeleteShader_ptr;
 static PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced_ptr;
 static PFNGLGENERATEMIPMAPPROC glGenerateMipmap_ptr;
 static PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback_ptr;
+static PFNGLREADBUFFERPROC glReadBuffer_ptr;
 
 
 void load_gl_functions()
@@ -134,6 +139,7 @@ void load_gl_functions()
   glDrawElementsInstanced_ptr = (PFNGLDRAWELEMENTSINSTANCEDPROC) platform_load_gl_function("glDrawElementsInstanced");
   glGenerateMipmap_ptr = (PFNGLGENERATEMIPMAPPROC) platform_load_gl_function("glGenerateMipmap");
   glDebugMessageCallback_ptr = (PFNGLDEBUGMESSAGECALLBACKPROC)platform_load_gl_function("glDebugMessageCallback");
+  glReadBuffer_ptr = (PFNGLREADBUFFERPROC)platform_load_gl_function("glReadBuffer");
 }
 
 // #############################################################################
@@ -433,116 +439,10 @@ void glDebugMessageCallback (GLDEBUGPROC callback, const void *userParam)
 {
   glDebugMessageCallback_ptr(callback, userParam);
 }
- 
-// Loaded by default, kept it here just in case
-/*
-static PFNGLTEXIMAGE2DPROC glTexImage2D_ptr;
-static PFNGLTEXPARAMETERIPROC glTexParameteri_ptr;
-static PFNGLTEXPARAMETERFVPROC glTexParameterfv_ptr;
-static PFNGLCLEARPROC glClear_ptr;
-static PFNGLCLEARCOLORPROC glClearColor_ptr;
-static PFNGLREADBUFFERPROC glReadBuffer_ptr;
-static PFNGLDEPTHMASKPROC glDepthMask_ptr;
-static PFNGLDISABLEPROC glDisable_ptr;
-static PFNGLENABLEPROC glEnable_ptr;
-static PFNGLSCISSORPROC glScissor_ptr;
-static PFNGLVIEWPORTPROC glViewport_ptr;
-static PFNGLDEPTHFUNCPROC glDepthFunc_ptr;
-static PFNGLCULLFACEPROC glCullFace_ptr;
-static PFNGLBLENDFUNCPROC glBlendFunc_ptr;
-static PFNGLFRONTFACEPROC glFrontFace_ptr;
- 
-glTexImage2D_ptr = (PFNGLTEXIMAGE2DPROC)platform_load_gl_function("glTexImage2D");
-glTexParameteri_ptr = (PFNGLTEXPARAMETERIPROC)platform_load_gl_function("glTexParameteri");
-glTexParameterfv_ptr = (PFNGLTEXPARAMETERFVPROC)platform_load_gl_function("glTexParameterfv");
-glClear_ptr = (PFNGLCLEARPROC)platform_load_gl_function("glClear");
-glClearColor_ptr = (PFNGLCLEARCOLORPROC)platform_load_gl_function("glClearColor");
-glReadBuffer_ptr = (PFNGLREADBUFFERPROC)platform_load_gl_function("glReadBuffer");
-glDepthMask_ptr = (PFNGLDEPTHMASKPROC)platform_load_gl_function("glDepthMask");
-glDisable_ptr = (PFNGLDISABLEPROC)platform_load_gl_function("glDisable");
-glEnable_ptr = (PFNGLENABLEPROC)platform_load_gl_function("glEnable");
-glScissor_ptr = (PFNGLSCISSORPROC)platform_load_gl_function("glScissor");
-glViewport_ptr = (PFNGLVIEWPORTPROC)platform_load_gl_function("glViewport");
-glDepthFunc_ptr = (PFNGLDEPTHFUNCPROC)platform_load_gl_function("glDepthFunc");
-glCullFace_ptr = (PFNGLCULLFACEPROC)platform_load_gl_function("glCullFace");
-glBlendFunc_ptr = (PFNGLBLENDFUNCPROC)platform_load_gl_function("glBlendFunc");
-glFrontFace_ptr = (PFNGLFRONTFACEPROC)platform_load_gl_function("glFrontFace");
- 
-GLAPI void APIENTRY glTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width,
-                                  GLsizei height, GLint border, GLenum format, GLenum type,
-                                  const void *pixels)
+
+void glReadBuffer (GLenum mode)
 {
-  glTexImage2D_ptr(target, level, internalformat, width, height,
-                   border, format, type, pixels);
+  glReadBuffer_ptr(mode);
 }
  
-GLAPI void APIENTRY glTexParameteri (GLenum target, GLenum pname, GLint param)
-{
-  glTexParameteri_ptr(target, pname, param);
-}
- 
-GLAPI void APIENTRY glTexParameterfv (GLenum target, GLenum pname, const GLfloat *params)
-{
-  glTexParameterfv_ptr(target, pname, params);
-}
- 
-GLAPI void APIENTRY glClear (GLbitfield mask)
-{
-  glClear_ptr(mask);
-}
- 
-GLAPI void APIENTRY glClearColor (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
-{
-  glClearColor_ptr(red, green, blue, alpha);
-}
- 
-void glReadBuffer(GLenum mode)
-{
-    glReadBuffer_ptr(mode);
-}
- 
-void glDepthMask(GLboolean flag)
-{
-    glDepthMask_ptr(flag);
-}
- 
-void glDisable(GLenum cap)
-{
-    glDisable_ptr(cap);
-}
- 
-void glEnable(GLenum cap)
-{
-    glEnable_ptr(cap);
-}
- 
-void glScissor(GLint x, GLint y, GLsizei width, GLsizei height)
-{
-    glScissor_ptr(x, y, width, height);
-}
- 
-void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
-{
-    glViewport_ptr(x, y, width, height);
-}
- 
-void glDepthFunc(GLenum func)
-{
-    glDepthFunc_ptr(func);
-}
- 
-void glCullFace(GLenum mode)
-{
-    glCullFace_ptr(mode);
-}
- 
-void glBlendFunc(GLenum sfactor, GLenum dfactor)
-{
-    glBlendFunc_ptr(sfactor, dfactor);
-}
- 
-void glFrontFace(GLenum mode)
-{
-    glFrontFace_ptr(mode);
-}
-*/
+
