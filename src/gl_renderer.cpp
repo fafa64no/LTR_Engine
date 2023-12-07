@@ -38,9 +38,6 @@ struct GLContext{
 // ############################################################################
 static GLContext glContext;
 
-static RenderInterface::Texture* ltrTexture;
-static RenderInterface::Texture* woodTexture;
-static RenderInterface::Texture* awesomeTexture;
 static unsigned int 
     FBO,RBO,frameTexture,frameVAO,frameVBO,
     dirLightDepthMapFBO,dirLightDepthMap;
@@ -105,7 +102,7 @@ void gl_render_3D_layer(){
 // ############################################################################
 void gl_render(){
     unsigned int width{(unsigned int)input->screenSize.x},height{(unsigned int)input->screenSize.y};
-    unsigned short pixelation=4;
+    unsigned short pixelation=1;
     unsigned int pixWidth{(unsigned int)width/pixelation},pixHeight{(unsigned int)height/pixelation};
     //Render shadow map
     glViewport(0,0,DIR_SHADOW_WIDTH,DIR_SHADOW_HEIGHT);
@@ -124,7 +121,7 @@ void gl_render(){
     glBindTexture(GL_TEXTURE_2D,dirLightDepthMap);
     RenderInterface::renderData->currentCamera->updateDir(input->mouseDir);
     RenderInterface::renderData->viewMat=RenderInterface::renderData->currentCamera->viewMat();
-    RenderInterface::renderData->projMat=glm::perspective(glm::radians(45.0f),(float)pixWidth/(float)pixHeight,0.1f,100.0f);
+    RenderInterface::renderData->projMat=glm::perspective(glm::radians(45.0f),(float)pixWidth/(float)pixHeight,0.1f,200.0f);
     gl_render_3D_layer();
     for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->Draw(RenderInterface::renderData);
     glBindFramebuffer(GL_FRAMEBUFFER,0);
@@ -151,10 +148,11 @@ void gl_shaders_init(BumpAllocator* persistentStorage){
     dirShadowShader=new RenderInterface::Shader("assets/shaders/dirShadowShader.vert","assets/shaders/dirShadowShader.frag",persistentStorage);
 }
 void gl_textures_init(){
-    ltrTexture=new RenderInterface::Texture("assets/textures/LTR.png",GL_RGBA);
     faridTexture=new RenderInterface::Texture("assets/textures/farid.png",GL_RGBA);
-    woodTexture=new RenderInterface::Texture("assets/textures/container.jpg",GL_RGB);
-    awesomeTexture=new RenderInterface::Texture("assets/textures/awesomeface.png",GL_RGBA);
+    groundTexture=new RenderInterface::Texture("assets/textures/ground.png",GL_RGB);
+    building1Texture=new RenderInterface::Texture("assets/textures/building1.png",GL_RGB);
+    building2Texture=new RenderInterface::Texture("assets/textures/building2.png",GL_RGB);
+    building3Texture=new RenderInterface::Texture("assets/textures/farid.png",GL_RGBA);
 }
 bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     load_gl_functions();

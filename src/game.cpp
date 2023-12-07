@@ -27,7 +27,7 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
         //------Testing glb stuff------//
         //std::vector<char>* bufter;
         //read_glb_file("assets/meshes/Decor/baseDecor.glb",bufter,transientStorage);
-        //read_glb_file("assets/meshes/Creatures/Poisson1.glb",bufter,transientStorage);
+        //read_glb_file("assets/meshes/Creatures/Chinosaure_decimated.glb",bufter,transientStorage);
         //sort_glb_file(*bufter);
         {
             //------Testing node stuff------//
