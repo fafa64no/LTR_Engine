@@ -151,8 +151,7 @@ namespace RenderInterface{
         Camera(glm::vec3 camPos,glm::vec3 camFront,glm::vec3 camUp);
         glm::mat4 viewMat();
         void updatePos(glm::vec3 camPos);
-        void updateDir(glm::vec2 camTurnDir);
-        float sensitivity=0.2;
+        void updateDir(glm::vec2 camTurnDir,float dt);
         glm::vec3 camPos;
         glm::vec3 camFront;
         glm::vec3 camUp;
@@ -164,6 +163,7 @@ namespace RenderInterface{
         glm::mat4 viewMat,projMat;
         Node* nodes_to_render[MAX_NODES_TO_RENDER];
         unsigned int nodeCount=0;
+        unsigned short pixelation;
     };
     struct NodeContainer{
         Node* nodes[MAX_NODES];

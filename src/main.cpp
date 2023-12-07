@@ -16,6 +16,8 @@
 // ############################################################################
 //                            Cross Platform Functions
 // ############################################################################
+#include <chrono>
+double get_delta_time();
 #include "input.h"
 #include "game.h"
 #include "zone.h"
@@ -30,6 +32,7 @@
 //                            Main loop
 // ############################################################################
 int main(){
+    get_delta_time();
     init_debug_log_system();
     SM_TRACE("Loading LTR_Engine");
 
@@ -64,9 +67,10 @@ int main(){
     //Game loop
     SM_TRACE("Updating game");
     while (gameData->is_running){
+        float dt=get_delta_time();
         //Update
         platform_update_window();
-        update_game(&transientStorage,&persistentStorage);
+        update_game(&transientStorage,&persistentStorage,dt);
         gl_render();
         platform_swap_buffers();
         transientStorage.used=0;
@@ -74,4 +78,12 @@ int main(){
     }
     SM_TRACE("Exiting game");
     return 0;
+}
+
+double get_delta_time(){
+    static auto lastTime=std::chrono::steady_clock::now();
+    auto currentTime=std::chrono::steady_clock::now();
+    double delta=std::chrono::duration<double>(currentTime-lastTime).count();
+    lastTime=currentTime;
+    return delta;
 }

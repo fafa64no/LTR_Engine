@@ -10,7 +10,12 @@ static RenderInterface::Shader* testShader;
 static RenderInterface::Shader* frameQuadShader;
 static RenderInterface::Shader* diffuseShader;
 static RenderInterface::Shader* dirShadowShader;
+
 static RenderInterface::Texture* faridTexture;
+static RenderInterface::Texture* groundTexture;
+static RenderInterface::Texture* building1Texture;
+static RenderInterface::Texture* building2Texture;
+static RenderInterface::Texture* building3Texture;
 // #############################################################################
 //                           OpenGL Function Pointers
 // #############################################################################

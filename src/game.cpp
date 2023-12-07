@@ -6,7 +6,7 @@
 // ############################################################################
 //                            Game Constants
 // ############################################################################
-static float playerSpeed=0.1f;
+static float playerSpeed=100.0f;
 
 // ############################################################################
 //                            Game Functions
@@ -27,7 +27,7 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
         //------Testing glb stuff------//
         //std::vector<char>* bufter;
         //read_glb_file("assets/meshes/Decor/baseDecor.glb",bufter,transientStorage);
-        //read_glb_file("assets/meshes/Creatures/Poisson1.glb",bufter,transientStorage);
+        //read_glb_file("assets/meshes/Creatures/Chinosaure_decimated.glb",bufter,transientStorage);
         //sort_glb_file(*bufter);
         {
             //------Testing node stuff------//
@@ -53,7 +53,8 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
         }
     }
 }
-void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
+void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage,float dt){
+    RenderInterface::renderData->currentCamera->updateDir(input->mouseDir,dt);
     //Exit
     if(key_pressed_this_frame(input->keyBindings[EXIT_KEY]))gameData->is_running=false;
     //Pause
@@ -64,19 +65,26 @@ void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorag
     }
     if(!gameData->is_paused){
         //Movement
-        if(key_is_down(input->keyBindings[FORWARD_KEY]))RenderInterface::renderData->currentCamera->camPos+=playerSpeed*RenderInterface::renderData->currentCamera->camFront;
-        if(key_is_down(input->keyBindings[BACKWARD_KEY]))RenderInterface::renderData->currentCamera->camPos-=playerSpeed*RenderInterface::renderData->currentCamera->camFront;
-        if(key_is_down(input->keyBindings[LEFT_KEY]))RenderInterface::renderData->currentCamera->camPos-=playerSpeed*glm::normalize(glm::cross(RenderInterface::renderData->currentCamera->camFront,RenderInterface::renderData->currentCamera->camUp));
-        if(key_is_down(input->keyBindings[RIGHT_KEY]))RenderInterface::renderData->currentCamera->camPos+=playerSpeed*glm::normalize(glm::cross(RenderInterface::renderData->currentCamera->camFront,RenderInterface::renderData->currentCamera->camUp));
-        if(key_is_down(input->keyBindings[UP_KEY]))RenderInterface::renderData->currentCamera->camPos+=playerSpeed*RenderInterface::renderData->currentCamera->camUp;
-        if(key_is_down(input->keyBindings[DOWN_KEY]))RenderInterface::renderData->currentCamera->camPos-=playerSpeed*RenderInterface::renderData->currentCamera->camUp;
+        if(key_is_down(input->keyBindings[FORWARD_KEY]))RenderInterface::renderData->currentCamera->camPos+=dt*playerSpeed*RenderInterface::renderData->currentCamera->camFront;
+        if(key_is_down(input->keyBindings[BACKWARD_KEY]))RenderInterface::renderData->currentCamera->camPos-=dt*playerSpeed*RenderInterface::renderData->currentCamera->camFront;
+        if(key_is_down(input->keyBindings[LEFT_KEY]))RenderInterface::renderData->currentCamera->camPos-=dt*playerSpeed*glm::normalize(glm::cross(RenderInterface::renderData->currentCamera->camFront,RenderInterface::renderData->currentCamera->camUp));
+        if(key_is_down(input->keyBindings[RIGHT_KEY]))RenderInterface::renderData->currentCamera->camPos+=dt*playerSpeed*glm::normalize(glm::cross(RenderInterface::renderData->currentCamera->camFront,RenderInterface::renderData->currentCamera->camUp));
+        if(key_is_down(input->keyBindings[UP_KEY]))RenderInterface::renderData->currentCamera->camPos+=dt*playerSpeed*RenderInterface::renderData->currentCamera->camUp;
+        if(key_is_down(input->keyBindings[DOWN_KEY]))RenderInterface::renderData->currentCamera->camPos-=dt*playerSpeed*RenderInterface::renderData->currentCamera->camUp;
         RenderInterface::renderData->currentCamera->updatePos(RenderInterface::renderData->currentCamera->camPos);
-        //Light
+        //Rendering
         if(key_pressed_this_frame(input->keyBindings[FULLBRIGHT_KEY])){
             if(gameData->currentBiome!=Zones::fullBrightBiome){
                 gameData->currentBiome=Zones::fullBrightBiome;
             }else{
                 gameData->currentBiome=Zones::testBiome;
+            }
+        }
+        if(key_pressed_this_frame(input->keyBindings[PIXELATION_KEY])){
+            if(RenderInterface::renderData->pixelation==1){
+                RenderInterface::renderData->pixelation=4;
+            }else{
+                RenderInterface::renderData->pixelation=1;
             }
         }
     }
