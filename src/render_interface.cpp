@@ -220,7 +220,6 @@ namespace RenderInterface{
         this->shader->use();
         this->shader->setInt("textureUsed",0);
         this->shader->setInt("shadowMap",1);
-        ((RenderData*)renderData)->currentCamera->updateDir(input->mouseDir);
         glm::mat4 viewMat=((RenderData*)renderData)->currentCamera->viewMat();
         glm::mat4 projMat=glm::perspective(glm::radians(45.0f),(float)input->screenSize.x/(float)input->screenSize.y, 0.1f, 100.0f);
         glm::mat4 modelMat=glm::mat4(1.0f);
@@ -329,11 +328,11 @@ namespace RenderInterface{
         this->camPos=camPos;
         this->camView=glm::lookAt(this->camPos,this->camPos+this->camFront,this->camUp);
     }
-    void Camera::updateDir(glm::vec2 camTurnDir){
+    void Camera::updateDir(glm::vec2 camTurnDir,float dt){
         static float yaw=0.0;
         static float pitch=0.0;
-        yaw+=camTurnDir.x*this->sensitivity;
-        pitch-=camTurnDir.y*this->sensitivity;
+        yaw+=camTurnDir.x*dt*input->sensivity;
+        pitch-=camTurnDir.y*dt*input->sensivity;
         //Check -90<pitch<90
         if(pitch<-89.0){pitch=-89.0;}
         else if(pitch>89.0)pitch=89.0;

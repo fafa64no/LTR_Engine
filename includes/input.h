@@ -84,6 +84,7 @@ enum Controls{
     PAUSE_KEY,
     EXIT_KEY,
     FULLBRIGHT_KEY,
+    PIXELATION_KEY,
     DEBUG_KEY,
     CONTROLS_COUNT,
 };
@@ -102,6 +103,7 @@ struct Input{
     glm::ivec2 mousePos;
     glm::ivec2 relMouse;
     glm::vec2 mouseDir;
+    float sensivity;
     //Keys
     Key keys[KEY_COUNT];
     KeyCodeID keyBindings[CONTROLS_COUNT];
@@ -131,6 +133,7 @@ bool key_is_down(KeyCodeID keyCode){
 }
 
 void reset_key_bindings(Input* input){
+    input->sensivity=40.0f;
     input->keyBindings[FORWARD_KEY]=KEY_Z;
     input->keyBindings[LEFT_KEY]=KEY_Q;
     input->keyBindings[RIGHT_KEY]=KEY_D;
@@ -140,6 +143,7 @@ void reset_key_bindings(Input* input){
     input->keyBindings[PAUSE_KEY]=KEY_ESCAPE;
     input->keyBindings[EXIT_KEY]=KEY_E;
     input->keyBindings[FULLBRIGHT_KEY]=KEY_C;
+    input->keyBindings[PIXELATION_KEY]=KEY_P;
     input->keyBindings[DEBUG_KEY]=KEY_R;
 }
 

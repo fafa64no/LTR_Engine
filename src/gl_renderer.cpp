@@ -102,8 +102,7 @@ void gl_render_3D_layer(){
 // ############################################################################
 void gl_render(){
     unsigned int width{(unsigned int)input->screenSize.x},height{(unsigned int)input->screenSize.y};
-    unsigned short pixelation=1;
-    unsigned int pixWidth{(unsigned int)width/pixelation},pixHeight{(unsigned int)height/pixelation};
+    unsigned int pixWidth{(unsigned int)width/RenderInterface::renderData->pixelation},pixHeight{(unsigned int)height/RenderInterface::renderData->pixelation};
     //Render shadow map
     glViewport(0,0,DIR_SHADOW_WIDTH,DIR_SHADOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER,dirLightDepthMapFBO);
@@ -119,9 +118,8 @@ void gl_render(){
     gl_clear();
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D,dirLightDepthMap);
-    RenderInterface::renderData->currentCamera->updateDir(input->mouseDir);
     RenderInterface::renderData->viewMat=RenderInterface::renderData->currentCamera->viewMat();
-    RenderInterface::renderData->projMat=glm::perspective(glm::radians(45.0f),(float)pixWidth/(float)pixHeight,0.1f,200.0f);
+    RenderInterface::renderData->projMat=glm::perspective(glm::radians(45.0f),(float)pixWidth/(float)pixHeight,0.1f,500.0f);
     gl_render_3D_layer();
     for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->Draw(RenderInterface::renderData);
     glBindFramebuffer(GL_FRAMEBUFFER,0);
@@ -223,6 +221,7 @@ bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
         glm::vec3(0.0f,2.0f,0.0f),
         glm::vec3(1.0f,0.0f,0.0f),
         glm::vec3(0.0f,1.0f,0.0f));
+    RenderInterface::renderData->pixelation=1;
     return true;
 }
 
