@@ -22,10 +22,12 @@ double get_delta_time();
 #include "game.h"
 #include "zone.h"
 #include "render_interface.h"
+#include "cards.h"
 
 #include "gl_renderer.cpp"
 #include "scenes.h"
 #include "render_interface.cpp"
+#include "cards.cpp"
 #include "game.cpp"
 
 // ############################################################################
