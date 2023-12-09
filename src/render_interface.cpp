@@ -315,34 +315,181 @@ namespace RenderInterface{
     // ############################################################################
     //                            Camera Functions
     // ############################################################################
-    Camera::Camera(glm::vec3 camPos,glm::vec3 camFront,glm::vec3 camUp){
-        this->camFront=glm::normalize(camFront);
+    Camera::Camera(glm::vec3 camPos,glm::vec3 camUp,float camNear,float camFar){
+        this->cameraType=PERSPECTIVE_CAMERA;
         this->camPos=camPos;
         this->camUp=camUp;
-        this->camView=glm::lookAt(this->camPos,this->camPos+this->camFront,this->camUp);
+        this->offset=glm::vec3(0.0f,0.0f,0.0f);
+        this->yaw=0.0f;
+        this->pitch=0.0f;
+        this->camNear=camNear;
+        this->camFar=camFar;
+        this->camWidth=0.0f;
+        this->updateCamFront();
+        this->updateViewMat();
+        this->updateProjMat();
     }
-    glm::mat4 RenderInterface::Camera::viewMat(){
+    Camera::Camera(glm::vec3 camPos,glm::vec3 camUp,glm::vec3 offset,float camNear,float camFar,float camWidth){
+        this->cameraType=ORTHOGRAPHIC_CAMERA;
+        this->camPos=camPos;
+        this->camUp=camUp;
+        this->offset=offset;
+        this->yaw=0.0f;
+        this->pitch=0.0f;
+        this->camNear=camNear;
+        this->camFar=camFar;
+        this->camWidth=camWidth;
+        this->updateCamFront();
+        this->updateViewMat();
+        this->updateProjMat();
+    }
+    Camera::Camera(glm::vec3 camPos,glm::vec3 camUp,float yaw, float pitch,float camNear,float camFar){
+        this->cameraType=PERSPECTIVE_CAMERA;
+        this->camPos=camPos;
+        this->camUp=camUp;
+        this->offset=glm::vec3(0.0f,0.0f,0.0f);
+        this->yaw=yaw;
+        this->pitch=pitch;
+        this->camNear=camNear;
+        this->camFar=camFar;
+        this->camWidth=0.0f;
+        this->updateCamFront();
+        this->updateViewMat();
+        this->updateProjMat();
+    }
+    Camera::Camera(glm::vec3 camPos,glm::vec3 camUp,float yaw, float pitch,glm::vec3 offset,float camNear,float camFar,float camWidth){
+        this->cameraType=ORTHOGRAPHIC_CAMERA;
+        this->camPos=camPos;
+        this->camUp=camUp;
+        this->yaw=yaw;
+        this->pitch=pitch;
+        this->offset=offset;
+        this->camNear=camNear;
+        this->camFar=camFar;
+        this->camWidth=camWidth;
+        this->updateCamFront();
+        this->updateViewMat();
+        this->updateProjMat();
+    }
+
+    glm::mat4 Camera::viewMat(){
         return this->camView;
     }
-    void Camera::updatePos(glm::vec3 camPos){
-        this->camPos=camPos;
-        this->camView=glm::lookAt(this->camPos,this->camPos+this->camFront,this->camUp);
+    glm::mat4 Camera::projMat(){
+        return this->camProj;
     }
-    void Camera::updateDir(glm::vec2 camTurnDir,float dt){
-        static float yaw=0.0;
-        static float pitch=0.0;
-        yaw+=camTurnDir.x*dt*input->sensivity;
-        pitch-=camTurnDir.y*dt*input->sensivity;
-        //Check -90<pitch<90
-        if(pitch<-89.0){pitch=-89.0;}
-        else if(pitch>89.0)pitch=89.0;
-        //Update cam view
+    glm::vec3 Camera::frontVec(){
+        return this->camFront;
+    }
+    void Camera::updateViewMat(){
+        this->updateCamFront();
+        this->camView=(this->cameraType==PERSPECTIVE_CAMERA)
+            ?glm::lookAt(this->camPos,this->camPos+this->camFront,this->camUp)
+            :glm::lookAt(this->camPos+this->offset,this->camPos,this->camUp);
+    }
+    void Camera::updateProjMat(){
+        this->camProj=(this->cameraType==PERSPECTIVE_CAMERA)
+            ?glm::perspective(glm::radians(45.0f),this->aspectRatio,this->camNear,this->camFar)
+            :glm::ortho(-this->camWidth,this->camWidth,-this->camWidth*this->aspectRatio,this->camWidth*this->aspectRatio,this->camNear,this->camFar);
+    }
+    void Camera::updateCamFront(){
         this->camFront=glm::normalize(glm::vec3(
-            cos(glm::radians(yaw))*cos(glm::radians(pitch)),
-            sin(glm::radians(pitch)),
-            sin(glm::radians(yaw))*cos(glm::radians(pitch))
+            cos(glm::radians(this->yaw))*cos(glm::radians(this->pitch)),
+            sin(glm::radians(this->pitch)),
+            sin(glm::radians(this->yaw))*cos(glm::radians(this->pitch))
         ));
-        this->camView=glm::lookAt(this->camPos,this->camPos+this->camFront,this->camUp);
+    }
+
+    void Camera::updateRatio(float aspectRatio){
+        this->aspectRatio=(this->cameraType==PERSPECTIVE_CAMERA)?1.0f/aspectRatio:aspectRatio;
+    }
+    void Camera::updateRange(float camNear,float camFar){
+        this->camNear=camNear;
+        this->camFar=camFar;
+    }
+    void Camera::debugPrint(){
+        char msg[1024]{0};
+        sprintf(msg,"---- Cam ----\nType: \n\t%d\nPosition: \n\t%f\n\t%f\n\t%f\nOffset: \n\t%f\n\t%f\n\t%f\nYaw: \n\t%f\nPitch: \n\t%f\nRatio: \n\t%f\n\t%f\nCamUp: \n\t%f\n\t%f\n\t%f\nCamFront: \n\t%f\n\t%f\n\t%f\nCamView: \n\t%f\t%f\t%f\t%f\n\t%f\t%f\t%f\t%f\n\t%f\t%f\t%f\t%f\n\t%f\t%f\t%f\t%f\nCamProj: \n\t%f\t%f\t%f\t%f\n\t%f\t%f\t%f\t%f\n\t%f\t%f\t%f\t%f\n\t%f\t%f\t%f\t%f",
+            this->cameraType,
+            this->camPos.x,
+            this->camPos.y,
+            this->camPos.z,
+            this->offset.x,
+            this->offset.y,
+            this->offset.z,
+            this->yaw,
+            this->pitch,
+            this->aspectRatio,
+            input->screenRatio,
+            this->camUp.x,
+            this->camUp.y,
+            this->camUp.z,
+            this->camFront.x,
+            this->camFront.y,
+            this->camFront.z,
+            this->camView[0][0],
+            this->camView[1][0],
+            this->camView[2][0],
+            this->camView[3][0],
+            this->camView[0][1],
+            this->camView[1][1],
+            this->camView[2][1],
+            this->camView[3][1],
+            this->camView[0][2],
+            this->camView[1][2],
+            this->camView[2][2],
+            this->camView[3][2],
+            this->camView[0][3],
+            this->camView[1][3],
+            this->camView[2][3],
+            this->camView[3][3],
+            this->camProj[0][0],
+            this->camProj[1][0],
+            this->camProj[2][0],
+            this->camProj[3][0],
+            this->camProj[0][1],
+            this->camProj[1][1],
+            this->camProj[2][1],
+            this->camProj[3][1],
+            this->camProj[0][2],
+            this->camProj[1][2],
+            this->camProj[2][2],
+            this->camProj[3][2],
+            this->camProj[0][3],
+            this->camProj[1][3],
+            this->camProj[2][3],
+            this->camProj[3][3]
+        );
+        SM_TRACE(msg);
+    }
+
+    void Camera::setPos(glm::vec3 camPos){
+        this->camPos=camPos;
+    }
+    void Camera::setDir(float yaw,float pitch){
+        this->yaw=yaw;
+        this->pitch=pitch;
+    }
+    void Camera::setOffset(glm::vec3 offset){
+        this->offset=offset;
+    }
+
+    void Camera::movePos(glm::vec3 camPos){
+        this->camPos+=camPos;
+    }
+    void Camera::moveRelativePos(glm::vec3 camRelativePos){
+        this->camPos+=camRelativePos.x*this->camFront;
+        this->camPos+=camRelativePos.z*glm::normalize(glm::cross(this->camUp,this->camFront));
+        this->camPos+=camRelativePos.y*glm::normalize(glm::cross(this->camFront,glm::cross(this->camUp,this->camFront)));
+    }
+    void Camera::moveDir(glm::vec2 camTurnDir){
+        this->yaw+=camTurnDir.x;
+        this->pitch-=camTurnDir.y;
+        if(this->pitch<-89.0){this->pitch=-89.0;}
+        else if(this->pitch>89.0)this->pitch=89.0;
+    }
+    void Camera::moveOffset(glm::vec3 offset){
+        this->offset+=offset;
     }
 }
 

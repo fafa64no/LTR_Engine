@@ -146,17 +146,41 @@ namespace RenderInterface{
     // ############################################################################
     //                            Other Stuff
     // ############################################################################
+    enum CameraType{
+        PERSPECTIVE_CAMERA,
+        ORTHOGRAPHIC_CAMERA,
+    };
     class Camera{
     public:
-        Camera(glm::vec3 camPos,glm::vec3 camFront,glm::vec3 camUp);
+        Camera(glm::vec3 camPos,glm::vec3 camUp,float camNear,float camFar);
+        Camera(glm::vec3 camPos,glm::vec3 camUp,glm::vec3 offset,float camNear,float camFar,float camWidth);
+        Camera(glm::vec3 camPos,glm::vec3 camUp,float yaw, float pitch,float camNear,float camFar);
+        Camera(glm::vec3 camPos,glm::vec3 camUp,float yaw, float pitch,glm::vec3 offset,float camNear,float camFar,float camWidth);
+
         glm::mat4 viewMat();
-        void updatePos(glm::vec3 camPos);
-        void updateDir(glm::vec2 camTurnDir,float dt);
-        glm::vec3 camPos;
-        glm::vec3 camFront;
-        glm::vec3 camUp;
+        glm::mat4 projMat();
+        glm::vec3 frontVec();
+        void updateViewMat();
+        void updateProjMat();
+        void updateCamFront();
+
+        void updateRatio(float aspectRatio);
+        void updateRange(float camNear,float camFar);
+        void debugPrint();
+
+        void setPos(glm::vec3 camPos);
+        void setDir(float yaw,float pitch);
+        void setOffset(glm::vec3 offset);
+
+        void movePos(glm::vec3 camPos);
+        void moveRelativePos(glm::vec3 camRelativePos);
+        void moveDir(glm::vec2 camTurnDir);
+        void moveOffset(glm::vec3 offset);
     private:
-        glm::mat4 camView;
+        glm::mat4 camView,camProj;
+        glm::vec3 camPos,camFront,camUp,offset;
+        CameraType cameraType;
+        float camNear,camFar,camWidth,aspectRatio{1.0f},yaw{0.0f},pitch{0.0f};
     };
     struct RenderData{
         Camera* currentCamera;
@@ -188,5 +212,7 @@ namespace RenderInterface{
     // ############################################################################
     static RenderData* renderData;
     static NodeContainer* nodeContainer;
-    static Scene* testScene;
+
+    static Camera* freeCam;
+    static Camera* playerCam;
 };

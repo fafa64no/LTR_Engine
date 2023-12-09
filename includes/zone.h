@@ -19,6 +19,7 @@ namespace Zones{
     private:
         RenderInterface::Camera* camera;
         glm::mat4 lightSpaceMatrix;
+        float camRange;
     };
     struct RegionMesh{
         int mesh;
@@ -51,16 +52,20 @@ namespace Zones{
         this->ambientLight=ambientLight;
         this->sunDir=sunDir;
         this->sunCol=sunCol;
+        this->camRange=100.0f;
         this->camera=new RenderInterface::Camera(
-            -100.0f*sunDir,
-            glm::normalize(sunDir),
-            glm::vec3(0.0f,1.0f,0.0f)
+            glm::vec3(0.0f,0.0f,0.0f),
+            glm::vec3(0.0f,1.0f,0.0f),
+            -this->camRange*sunDir,
+            1.0f,
+            1000.0f,
+            100.0f
         );
     }
     void Biome::updateLightSpaceMatrix(){
-        const float range=500.0f;
-        glm::mat4 lightProjection=glm::ortho(-range,range,-range,range,1.0f,1000.0f);
-        this->lightSpaceMatrix=lightProjection*this->camera->viewMat();
+        this->camera->updateProjMat();
+        this->camera->updateViewMat();
+        this->lightSpaceMatrix=this->camera->projMat()*this->camera->viewMat();
     }
     glm::mat4 Biome::getLightSpaceMatrix(){
         return this->lightSpaceMatrix;

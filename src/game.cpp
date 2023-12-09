@@ -22,6 +22,23 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
     gameData->currentBiome=Zones::testBiome;
     gameData->currentRegion=Zones::testRegion;
     gameData->currentRegion->Draw();
+    gameData->debugMode=true;
+    RenderInterface::freeCam=new RenderInterface::Camera(
+        glm::vec3(0.0f,10.0f,0.0f),
+        glm::vec3(0.0f,1.0f,0.0f),
+        0.1f,
+        500.0f
+    );
+    RenderInterface::playerCam=new RenderInterface::Camera(
+        glm::vec3(0.0f,0.0f,0.0f),
+        glm::vec3(0.0f,1.0f,0.0f),
+        glm::vec3(0.0f,1.0f,0.0f),
+        0.1f,
+        100.0f,
+        35.0f
+    );
+    gameData->freeCam=true;
+    RenderInterface::renderData->currentCamera=RenderInterface::freeCam;
 
     {
         //------Testing glb stuff------//
@@ -54,7 +71,6 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
     }
 }
 void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage,float dt){
-    RenderInterface::renderData->currentCamera->updateDir(input->mouseDir,dt);
     //Exit
     if(key_pressed_this_frame(input->keyBindings[EXIT_KEY]))gameData->is_running=false;
     //Pause
@@ -65,13 +81,19 @@ void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorag
     }
     if(!gameData->is_paused){
         //Movement
-        if(key_is_down(input->keyBindings[FORWARD_KEY]))RenderInterface::renderData->currentCamera->camPos+=dt*playerSpeed*RenderInterface::renderData->currentCamera->camFront;
-        if(key_is_down(input->keyBindings[BACKWARD_KEY]))RenderInterface::renderData->currentCamera->camPos-=dt*playerSpeed*RenderInterface::renderData->currentCamera->camFront;
-        if(key_is_down(input->keyBindings[LEFT_KEY]))RenderInterface::renderData->currentCamera->camPos-=dt*playerSpeed*glm::normalize(glm::cross(RenderInterface::renderData->currentCamera->camFront,RenderInterface::renderData->currentCamera->camUp));
-        if(key_is_down(input->keyBindings[RIGHT_KEY]))RenderInterface::renderData->currentCamera->camPos+=dt*playerSpeed*glm::normalize(glm::cross(RenderInterface::renderData->currentCamera->camFront,RenderInterface::renderData->currentCamera->camUp));
-        if(key_is_down(input->keyBindings[UP_KEY]))RenderInterface::renderData->currentCamera->camPos+=dt*playerSpeed*RenderInterface::renderData->currentCamera->camUp;
-        if(key_is_down(input->keyBindings[DOWN_KEY]))RenderInterface::renderData->currentCamera->camPos-=dt*playerSpeed*RenderInterface::renderData->currentCamera->camUp;
-        RenderInterface::renderData->currentCamera->updatePos(RenderInterface::renderData->currentCamera->camPos);
+        glm::vec3 movement=glm::vec3(0.0f,0.0f,0.0f);
+        if(gameData->freeCam){
+            RenderInterface::renderData->currentCamera->moveDir(input->mouseDir*input->sensivity*dt);
+            if(key_is_down(input->keyBindings[FORWARD_KEY]))    movement.x+=1.0f;
+            if(key_is_down(input->keyBindings[BACKWARD_KEY]))   movement.x-=1.0f;
+            if(key_is_down(input->keyBindings[LEFT_KEY]))       movement.z+=1.0f;
+            if(key_is_down(input->keyBindings[RIGHT_KEY]))      movement.z-=1.0f;
+            if(key_is_down(input->keyBindings[UP_KEY]))         movement.y+=1.0f;
+            if(key_is_down(input->keyBindings[DOWN_KEY]))       movement.y-=1.0f;
+            RenderInterface::renderData->currentCamera->moveRelativePos(dt*playerSpeed*movement);
+        }else{
+
+        }
         //Rendering
         if(key_pressed_this_frame(input->keyBindings[FULLBRIGHT_KEY])){
             if(gameData->currentBiome!=Zones::fullBrightBiome){
@@ -86,6 +108,15 @@ void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorag
             }else{
                 RenderInterface::renderData->pixelation=1;
             }
+        }
+        if(gameData->debugMode){
+            SM_TRACE("----------DebugStuff----------");
+            RenderInterface::renderData->currentCamera->debugPrint();
+        }
+        if(key_pressed_this_frame(input->keyBindings[DEBUG_KEY])){
+            gameData->debugMode=true;
+        }else{
+            gameData->debugMode=false;
         }
     }
 }
