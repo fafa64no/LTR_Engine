@@ -98,6 +98,7 @@ struct Key{
 struct Input{
     glm::ivec2 screenSize;
     glm::ivec2 maxScreenSize;
+    float screenRatio;
     //Mouse
     glm::ivec2 prevMousePos;
     glm::ivec2 mousePos;

@@ -83,8 +83,6 @@ void gl_render_3D_layer(){
     testShader->setInt("textureUsed1",0);
     testShader->setInt("textureUsed2",1);
 
-    testShader->setVec3("viewPos",RenderInterface::renderData->currentCamera->camPos);
-
     testShader->setVec3("ambientLight",gameData->currentBiome->ambientLight);
     testShader->setVec3("lightPos",glm::vec3(1.0,1.0,1.0));
     testShader->setVec3("diffuseLightColor",glm::vec3(1.0,1.0,1.0));
@@ -95,9 +93,6 @@ void gl_render_3D_layer(){
     testShader->setVec3("material.diffuse",metal.diffuse);
     testShader->setVec3("material.specular",metal.specular);
     testShader->setInt("material.shininess",metal.shininess);
-
-    //Scene vars
-    
 }
 // ############################################################################
 void gl_render(){
@@ -118,8 +113,11 @@ void gl_render(){
     gl_clear();
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D,dirLightDepthMap);
+    RenderInterface::renderData->currentCamera->updateRatio(input->screenRatio);
+    RenderInterface::renderData->currentCamera->updateViewMat();
+    RenderInterface::renderData->currentCamera->updateProjMat();
     RenderInterface::renderData->viewMat=RenderInterface::renderData->currentCamera->viewMat();
-    RenderInterface::renderData->projMat=glm::perspective(glm::radians(45.0f),(float)pixWidth/(float)pixHeight,0.1f,500.0f);
+    RenderInterface::renderData->projMat=RenderInterface::renderData->currentCamera->projMat();
     gl_render_3D_layer();
     for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->Draw(RenderInterface::renderData);
     glBindFramebuffer(GL_FRAMEBUFFER,0);
@@ -216,12 +214,7 @@ bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     SM_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE,"Depthmap framebuffer incomplete");
     glBindFramebuffer(GL_FRAMEBUFFER,0);
 
-    //Init camera
-    RenderInterface::renderData->currentCamera=new RenderInterface::Camera(
-        glm::vec3(0.0f,2.0f,0.0f),
-        glm::vec3(1.0f,0.0f,0.0f),
-        glm::vec3(0.0f,1.0f,0.0f));
-    RenderInterface::renderData->pixelation=1;
+    RenderInterface::renderData->pixelation=4;
     return true;
 }
 

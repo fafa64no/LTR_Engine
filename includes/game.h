@@ -15,6 +15,8 @@ struct GameData{
     bool can_move_mouse_toggled;
     Zones::Biome* currentBiome;
     Zones::Region* currentRegion;
+    bool freeCam;
+    bool debugMode;
 };
 static GameData* gameData;
 

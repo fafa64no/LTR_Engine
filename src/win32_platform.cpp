@@ -30,6 +30,7 @@ LRESULT CALLBACK windows_window_callback(HWND window, UINT msg, WPARAM wParam, L
             GetClientRect(window,&rect);
             input->screenSize.x=rect.right-rect.left;
             input->screenSize.y=rect.bottom-rect.top;
+            input->screenRatio=(float)input->screenSize.y/input->screenSize.x;
             break;
         }
         //Check keys
