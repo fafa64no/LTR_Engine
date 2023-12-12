@@ -214,7 +214,7 @@ bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     SM_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE,"Depthmap framebuffer incomplete");
     glBindFramebuffer(GL_FRAMEBUFFER,0);
 
-    RenderInterface::renderData->pixelation=4;
+    RenderInterface::renderData->pixelation=1;
     return true;
 }
 

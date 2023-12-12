@@ -105,6 +105,7 @@ namespace RenderInterface{
         std::vector<unsigned int> indices;
         void Draw();
         void CastShadow();
+        void DebugTrace();
     private:
         unsigned int VAO,VBO,EBO;
         void setupMesh();
@@ -141,30 +142,6 @@ namespace RenderInterface{
         int unsigned getNodeWithName(char* name);
     private:
         unsigned int nodeCount=0;
-    };
-    namespace Cards{
-        struct Modifier{
-            float 
-                attackSpeedStrength,damageStrength,manaStrength,speedStrength,cooldownsStrength,dashStrength,
-                attackSpeedDuration,damageDuration,manaDuration,speedDuration,cooldownsDuration,dashDuration,
-                stunStrength,rootStrength,burnStrength,poisonStrength,slowStrength,weaknessStrength,
-                stunDuration,rootDuration,burnDuration,poisonDuration,slowDuration,weaknessDuration;
-        };
-        struct CardRenderer{
-
-        };
-        class Card{
-        public:
-            Card();
-            void updateSlot(unsigned short slot);
-            void RenderCard();
-            void RenderEffect();
-        private:
-            unsigned short consoMana,slot;
-            float cooldown,damage;
-            glm::mat4 modelMat;
-            CardRenderer cardRenderer; 
-        };
     };
 
     // ############################################################################

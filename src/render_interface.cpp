@@ -176,11 +176,17 @@ namespace RenderInterface{
     }
     void Mesh::Draw(){
         glBindVertexArray(this->VAO);
-        glDrawElements(GL_TRIANGLES,sizeof(unsigned int)*this->indices.size(),GL_UNSIGNED_INT,nullptr);
+        glDrawElements(GL_TRIANGLES,(GLsizei)sizeof(unsigned int)*this->indices.size(),GL_UNSIGNED_INT,nullptr);
     }
     void Mesh::CastShadow(){
         glBindVertexArray(this->VAO);
-        glDrawElements(GL_TRIANGLES,sizeof(unsigned int)*this->indices.size(),GL_UNSIGNED_INT,nullptr);
+        glDrawElements(GL_TRIANGLES,(GLsizei)sizeof(unsigned int)*this->indices.size(),GL_UNSIGNED_INT,nullptr);
+    }
+    void Mesh::DebugTrace(){
+        char msg[256]{0};
+        sprintf(msg,"---- Mesh ----\nIndices: \n\t%d\n",
+            (int)this->indices.size());
+        SM_TRACE(msg);
     }
 
     // ############################################################################

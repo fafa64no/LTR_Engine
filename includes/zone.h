@@ -29,13 +29,13 @@ namespace Zones{
     class Region{
     public:
         Region(RegionMesh* meshes,int meshCount,BumpAllocator* bumpAllocator);
-        void Draw();
+        void AddDraw();
     private:
         int *terrainNodes{nullptr},*propsNodes{nullptr},terrainNodeCount{0},propsNodeCount{0};
         void SetupTerrain(RegionMesh* meshes,int meshCount);
         void SetupProps();
-        void DrawTerrain();
-        void DrawProps();
+        void AddDrawTerrain();
+        void AddDrawProps();
     };
 
     // ############################################################################
@@ -91,14 +91,14 @@ namespace Zones{
         ));
     }
     void Region::SetupProps(){}
-    void Region::Draw(){
-        this->DrawTerrain();
-        this->DrawProps();
+    void Region::AddDraw(){
+        this->AddDrawTerrain();
+        this->AddDrawProps();
     }
-    void Region::DrawTerrain(){
+    void Region::AddDrawTerrain(){
         for(int i=0;i<this->terrainNodeCount;i++)RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[this->terrainNodes[i]]);
     }
-    void Region::DrawProps(){}
+    void Region::AddDrawProps(){}
 
     // ############################################################################
     //                            Zone Functions

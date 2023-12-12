@@ -6,7 +6,7 @@
 // ############################################################################
 //                            Game Constants
 // ############################################################################
-static float playerSpeed=100.0f;
+static float playerSpeed=25.0f;
 
 // ############################################################################
 //                            Game Functions
@@ -21,7 +21,7 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
     gameData->can_move_mouse_toggled=false;
     gameData->currentBiome=Zones::testBiome;
     gameData->currentRegion=Zones::testRegion;
-    gameData->currentRegion->Draw();
+    gameData->currentRegion->AddDraw();
     gameData->debugMode=true;
     RenderInterface::freeCam=new RenderInterface::Camera(
         glm::vec3(0.0f,10.0f,0.0f),
@@ -109,9 +109,11 @@ void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorag
                 RenderInterface::renderData->pixelation=1;
             }
         }
+        //Debug
         if(gameData->debugMode){
             SM_TRACE("----------DebugStuff----------");
             RenderInterface::renderData->currentCamera->debugPrint();
+            for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->mesh->DebugTrace();
         }
         if(key_pressed_this_frame(input->keyBindings[DEBUG_KEY])){
             gameData->debugMode=true;
