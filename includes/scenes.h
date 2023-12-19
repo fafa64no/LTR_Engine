@@ -35,10 +35,9 @@ namespace Scenes{
     int SetupScenes(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
         //Import scenes
         testShapes=new RenderInterface::Scene("assets/meshes/BasicShapes/testShape.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
-        fishes=new RenderInterface::Scene("assets/meshes/Creatures/Poisson2.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
         //fishes2= new RenderInterface::Scene("assets/meshes/Creatures/Chinosaure_decimated.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
-        baseDecor=new RenderInterface::Scene("assets/meshes/Decor/baseDecor.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
         baseDecor2=new RenderInterface::Scene("assets/meshes/Decor/baseDecor2.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
+        fishes=new RenderInterface::Scene("assets/meshes/Creatures/Poisson2.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
 
         //Alloc memory
         meshList=(RenderInterface::Mesh**)bump_alloc(persistentStorage,sizeof(RenderInterface::Mesh*)*((int)MESHID_COUNT));

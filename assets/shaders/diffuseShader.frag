@@ -1,16 +1,18 @@
 #version 430 core
 out vec4 FragColor;
 
-in vec3 Normal;
-in vec3 FragPos;
-in vec2 TexPos;
-in vec3 dirLightDir;
-in VERTEX_SHADOW_OUT{
+in VERTEX_OUT{
+    vec3 Normal;
+    vec3 FragPos;
+    vec2 TexPos;
+    vec3 dirLightDir;
     vec4 FragPosLightSpace;
 }fs_int;
 
-uniform vec3 ambientLight;
-uniform vec3 directionalLightColor;
+in LIGHT_OUT{
+    vec3 dirLightColor;
+    vec3 ambientLight;
+}l_in;
 
 uniform sampler2D textureUsed;
 uniform sampler2D shadowMap;
@@ -22,7 +24,7 @@ float shadow(){
 }
 
 void main(){
-    float direcDiffCoeff=min(max(dot(Normal,dirLightDir),0.0),1.0)*(1-shadow());
-    vec3 lightInfluenceVec=direcDiffCoeff*abs(directionalLightColor)+ambientLight;
-    FragColor=vec4(lightInfluenceVec,1.0)*texture(textureUsed,TexPos);
+    float direcDiffCoeff=min(max(dot(fs_int.Normal,fs_int.dirLightDir),0.0),1.0)*(1-shadow());
+    vec3 lightInfluenceVec=direcDiffCoeff*abs(l_in.dirLightColor)+l_in.ambientLight;
+    FragColor=vec4(lightInfluenceVec,1.0)*texture(textureUsed,fs_int.TexPos);
 }

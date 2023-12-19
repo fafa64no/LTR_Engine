@@ -68,6 +68,7 @@ namespace RenderInterface{
         void setMat4(const std::string &name,glm::mat4 value) const;
         void setVec3(const std::string &name,glm::vec3 value) const;
         void setVec2(const std::string &name,glm::vec2 value) const;
+        void setUniformBlock(const std::string &name,unsigned int value) const;
     };
     class Texture{
     public:
@@ -107,7 +108,7 @@ namespace RenderInterface{
         void CastShadow();
         void DebugTrace();
     private:
-        unsigned int VAO,VBO,EBO;
+        unsigned int VAO,VBO,EBO,UBO;
         void setupMesh();
         unsigned int type;
     };
@@ -121,7 +122,7 @@ namespace RenderInterface{
         Shader* shader;
         void Draw(void* renderData);
         void CastShadow(Shader &shader,void* renderData);
-        char name[16]={0};
+        char name[16]{0};
         void translate(glm::vec3 translation);
         void rotate(glm::vec4 rotation);
         void reScale(glm::vec3 scale);
@@ -213,6 +214,8 @@ namespace RenderInterface{
     // ############################################################################
     static RenderData* renderData;
     static NodeContainer* nodeContainer;
+
+    static std::vector<Shader*> shaders_3D;
 
     static Camera* freeCam;
     static Camera* playerCam;

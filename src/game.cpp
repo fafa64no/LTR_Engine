@@ -46,28 +46,6 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
         //read_glb_file("assets/meshes/Decor/baseDecor.glb",bufter,transientStorage);
         //read_glb_file("assets/meshes/Creatures/Chinosaure_decimated.glb",bufter,transientStorage);
         //sort_glb_file(*bufter);
-        {
-            //------Testing node stuff------//
-            int bloppyId=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
-                glm::vec3(3.0f,1.0f,2.0f),
-                glm::vec4(0.0f,0.0f,0.0f,0.0f),
-                glm::vec3(1.0f,1.0f,1.0f),
-                Scenes::meshList[Scenes::MESHID_BLOPPY],
-                faridTexture,
-                testShader
-            ));
-            int bloppyRenderId=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[bloppyId]);
-
-            int qs=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
-                glm::vec3(-4.0f,10.2f,-3.0f),
-                glm::vec4(0.0f,0.0f,0.0f,0.0f),
-                glm::vec3(5.0f,5.0f,5.0f),
-                Scenes::meshList[Scenes::MESHID_PWASCEONAIN],
-                faridTexture,
-                testShader
-            ));
-            int fgh=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[qs]);
-        }
     }
 }
 void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage,float dt){
@@ -111,9 +89,7 @@ void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorag
         }
         //Debug
         if(gameData->debugMode){
-            SM_TRACE("----------DebugStuff----------");
-            RenderInterface::renderData->currentCamera->debugPrint();
-            for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->mesh->DebugTrace();
+            SM_TRACE("---------- DebugStuff ----------");
         }
         if(key_pressed_this_frame(input->keyBindings[DEBUG_KEY])){
             gameData->debugMode=true;

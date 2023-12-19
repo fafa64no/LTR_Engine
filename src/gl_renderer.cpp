@@ -6,6 +6,7 @@
 #include "game.h"
 #include "materials.h"
 #include "scenes.h"
+#include "gl_uniforms.h"
 
 // ############################################################################
 //                            OpenGL Constants
@@ -40,7 +41,8 @@ static GLContext glContext;
 
 static unsigned int 
     FBO,RBO,frameTexture,frameVAO,frameVBO,
-    dirLightDepthMapFBO,dirLightDepthMap;
+    dirLightDepthMapFBO,dirLightDepthMap,
+    matrixUBO;
 
 // ############################################################################
 //                            OpenGL Functions
@@ -64,7 +66,7 @@ static void APIENTRY gl_debug_callback(
     }
 }
 void gl_clear(){
-    glClearColor(0.8f,0.8f,0.8f,1);
+    glClearColor(0.8f,0.8f,0.6f,1.0f);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 }
 
@@ -76,36 +78,46 @@ void gl_render_2D_layer(){
 }
 // ############################################################################
 void gl_render_3D_layer(){
-    glActiveTexture(GL_TEXTURE0);
-    faridTexture->use();
-
-    testShader->use();
-    testShader->setInt("textureUsed1",0);
-    testShader->setInt("textureUsed2",1);
-
-    testShader->setVec3("ambientLight",gameData->currentBiome->ambientLight);
-    testShader->setVec3("lightPos",glm::vec3(1.0,1.0,1.0));
-    testShader->setVec3("diffuseLightColor",glm::vec3(1.0,1.0,1.0));
-    testShader->setFloat("diffuseLightStrength",1.3f);
-    testShader->setFloat("diffuseLightRange",15.0f);
-
-    testShader->setVec3("material.ambient",metal.ambient);
-    testShader->setVec3("material.diffuse",metal.diffuse);
-    testShader->setVec3("material.specular",metal.specular);
-    testShader->setInt("material.shininess",metal.shininess);
+    glBindBuffer(GL_UNIFORM_BUFFER,matrixUBO);
+    using namespace RenderInterface;
+    if(gameData->debugMode){
+        gldb_uniformBuffer_update(
+            renderData->currentCamera->projMat()*renderData->currentCamera->viewMat(),
+            renderData->currentCamera->viewMat(),
+            gameData->currentBiome->getLightSpaceMatrix(),
+            gameData->currentBiome->sunDir,
+            gameData->currentBiome->sunCol,
+            gameData->currentBiome->ambientLight
+        );
+    }else{
+        gl_uniformBuffer_update(
+            renderData->currentCamera->projMat()*renderData->currentCamera->viewMat(),
+            renderData->currentCamera->viewMat(),
+            gameData->currentBiome->getLightSpaceMatrix(),
+            gameData->currentBiome->sunDir,
+            gameData->currentBiome->sunCol,
+            gameData->currentBiome->ambientLight
+        );
+    }
+    glBindBuffer(GL_UNIFORM_BUFFER,0);
+    for(int i=0;i<renderData->nodeCount;i++)renderData->nodes_to_render[i]->Draw(renderData);
 }
 // ############################################################################
 void gl_render(){
     unsigned int width{(unsigned int)input->screenSize.x},height{(unsigned int)input->screenSize.y};
     unsigned int pixWidth{(unsigned int)width/RenderInterface::renderData->pixelation},pixHeight{(unsigned int)height/RenderInterface::renderData->pixelation};
     //Render shadow map
-    glViewport(0,0,DIR_SHADOW_WIDTH,DIR_SHADOW_HEIGHT);
-    glBindFramebuffer(GL_FRAMEBUFFER,dirLightDepthMapFBO);
-    glEnable(GL_DEPTH_TEST);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    gameData->currentBiome->updateLightSpaceMatrix();
-    for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->CastShadow(*dirShadowShader,RenderInterface::renderData);
-    glBindFramebuffer(GL_FRAMEBUFFER,0);
+    static int shadi{0};
+    if(shadi==0){
+        glViewport(0,0,DIR_SHADOW_WIDTH,DIR_SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER,dirLightDepthMapFBO);
+        glEnable(GL_DEPTH_TEST);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        gameData->currentBiome->updateLightSpaceMatrix();
+        for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->CastShadow(*dirShadowShader,RenderInterface::renderData);
+        glBindFramebuffer(GL_FRAMEBUFFER,0);
+        shadi++;
+    }
     //Render view
     glViewport(0,0,pixWidth,pixHeight);
     glBindFramebuffer(GL_FRAMEBUFFER,FBO);
@@ -119,7 +131,6 @@ void gl_render(){
     RenderInterface::renderData->viewMat=RenderInterface::renderData->currentCamera->viewMat();
     RenderInterface::renderData->projMat=RenderInterface::renderData->currentCamera->projMat();
     gl_render_3D_layer();
-    for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->Draw(RenderInterface::renderData);
     glBindFramebuffer(GL_FRAMEBUFFER,0);
     //Post processing
     glViewport(0,0,width,height);
@@ -138,17 +149,27 @@ void gl_render(){
 //                            OpenGL Init Functions
 // ############################################################################
 void gl_shaders_init(BumpAllocator* persistentStorage){
-    testShader=new RenderInterface::Shader("assets/shaders/test.vert","assets/shaders/test.frag",persistentStorage);
-    frameQuadShader=new RenderInterface::Shader("assets/shaders/frameQuadShader.vert","assets/shaders/frameQuadShader.frag",persistentStorage);
-    diffuseShader=new RenderInterface::Shader("assets/shaders/diffuseShader.vert","assets/shaders/diffuseShader.frag",persistentStorage);
-    dirShadowShader=new RenderInterface::Shader("assets/shaders/dirShadowShader.vert","assets/shaders/dirShadowShader.frag",persistentStorage);
+    using namespace RenderInterface;
+    // 3D shaders
+    //testShader      =new Shader("assets/shaders/test.vert"              ,"assets/shaders/test.frag"             ,persistentStorage);
+    diffuseShader   =new Shader("assets/shaders/diffuseShader.vert"     ,"assets/shaders/diffuseShader.frag"    ,persistentStorage);
+
+    //shaders_3D.push_back(testShader);
+    shaders_3D.push_back(diffuseShader);
+
+    // 2D shaders
+    frameQuadShader =new Shader("assets/shaders/frameQuadShader.vert"   ,"assets/shaders/frameQuadShader.frag"  ,persistentStorage);
+
+    // Shadow shaders
+    dirShadowShader =new Shader("assets/shaders/dirShadowShader.vert"   ,"assets/shaders/dirShadowShader.frag"  ,persistentStorage);
 }
 void gl_textures_init(){
-    faridTexture=new RenderInterface::Texture("assets/textures/farid.png",GL_RGBA);
-    groundTexture=new RenderInterface::Texture("assets/textures/ground.png",GL_RGB);
-    building1Texture=new RenderInterface::Texture("assets/textures/building1.png",GL_RGB);
-    building2Texture=new RenderInterface::Texture("assets/textures/building2.png",GL_RGB);
-    building3Texture=new RenderInterface::Texture("assets/textures/farid.png",GL_RGBA);
+    using namespace RenderInterface;
+    faridTexture=new Texture("assets/textures/farid.png",GL_RGBA);
+    groundTexture=new Texture("assets/textures/ground.png",GL_RGB);
+    building1Texture=new Texture("assets/textures/building1.png",GL_RGB);
+    building2Texture=new Texture("assets/textures/building2.png",GL_RGB);
+    building3Texture=new Texture("assets/textures/farid.png",GL_RGBA);
 }
 bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     load_gl_functions();
@@ -159,14 +180,20 @@ bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
-    //Init Shaders and Materials
-    gl_shaders_init(persistentStorage);
+    //Init Materials, Textures and Shaders
     gl_materials_init();
-    //Load textures
     gl_textures_init();
+    gl_shaders_init(persistentStorage);
+
+    //Max screen size
+    {
+        char buff[64]{0};
+        platform_get_screen_size(&input->maxScreenSize.x,&input->maxScreenSize.y);
+        sprintf(buff,"----maxScreenSize:\n\t%d\t%d\n",input->maxScreenSize.x,input->maxScreenSize.y);
+        SM_TRACE(buff);
+    }
 
     //Frame buffers
-    input->maxScreenSize=glm::ivec2(1980,1080);
     glGenFramebuffers(1,&FBO);
     glBindFramebuffer(GL_FRAMEBUFFER,FBO);
     glGenTextures(1,&frameTexture);
@@ -213,6 +240,15 @@ bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
 
     SM_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE,"Depthmap framebuffer incomplete");
     glBindFramebuffer(GL_FRAMEBUFFER,0);
+
+    //Uniform buffers
+    gl_uniformBuffer_setup();
+    for(int i=0;i<RenderInterface::shaders_3D.size();i++)RenderInterface::shaders_3D[i]->setUniformBlock("MatsAndVecs",0);
+    glGenBuffers(1,&matrixUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER,matrixUBO);
+    glBufferData(GL_UNIFORM_BUFFER,uniformBufferSize,NULL,GL_DYNAMIC_DRAW); // allocate 60*sizeof(float) bytes of memory
+    glBindBufferRange(GL_UNIFORM_BUFFER,0,matrixUBO,0,uniformBufferSize);
+    glBindBuffer(GL_UNIFORM_BUFFER,0);
 
     RenderInterface::renderData->pixelation=1;
     return true;

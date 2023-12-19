@@ -80,6 +80,9 @@ static PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced_ptr;
 static PFNGLGENERATEMIPMAPPROC glGenerateMipmap_ptr;
 static PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback_ptr;
 static PFNGLREADBUFFERPROC glReadBuffer_ptr;
+static PFNGLBINDBUFFERRANGEPROC glBindBufferRange_ptr;
+static PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex_ptr;
+static PFNGLUNIFORMBLOCKBINDINGPROC glUniformBlockBinding_ptr;
 
 
 void load_gl_functions()
@@ -145,6 +148,9 @@ void load_gl_functions()
   glGenerateMipmap_ptr = (PFNGLGENERATEMIPMAPPROC) platform_load_gl_function("glGenerateMipmap");
   glDebugMessageCallback_ptr = (PFNGLDEBUGMESSAGECALLBACKPROC)platform_load_gl_function("glDebugMessageCallback");
   glReadBuffer_ptr = (PFNGLREADBUFFERPROC)platform_load_gl_function("glReadBuffer");
+  glBindBufferRange_ptr = (PFNGLBINDBUFFERRANGEPROC)platform_load_gl_function("glBindBufferRange");
+  glGetUniformBlockIndex_ptr = (PFNGLGETUNIFORMBLOCKINDEXPROC)platform_load_gl_function("glGetUniformBlockIndex");
+  glUniformBlockBinding_ptr = (PFNGLUNIFORMBLOCKBINDINGPROC)platform_load_gl_function("glUniformBlockBinding");
 }
 
 // #############################################################################
@@ -449,5 +455,15 @@ void glReadBuffer (GLenum mode)
 {
   glReadBuffer_ptr(mode);
 }
- 
 
+void glBindBufferRange(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size){
+    glBindBufferRange_ptr(target, index, buffer, offset, size);
+}
+
+GLuint glGetUniformBlockIndex(GLuint program, const GLchar *uniformBlockName){
+    return glGetUniformBlockIndex_ptr(program, uniformBlockName);
+}
+
+void glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding){
+    glUniformBlockBinding_ptr(program, uniformBlockIndex, uniformBlockBinding);
+}

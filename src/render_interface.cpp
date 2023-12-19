@@ -50,18 +50,20 @@ namespace RenderInterface{
     void Shader::use(){ 
         glUseProgram(programID);
     }
-    void Shader::setBool(const std::string &name,bool value) const{         
-        glUniform1i(glGetUniformLocation(programID,name.c_str()),value); 
-    }void Shader::setInt(const std::string &name,int value) const{ 
-        glUniform1i(glGetUniformLocation(programID,name.c_str()),value); 
-    }void Shader::setFloat(const std::string &name,float value) const{ 
-        glUniform1f(glGetUniformLocation(programID,name.c_str()),value); 
+    void Shader::setBool(const std::string &name,bool value) const{
+        glUniform1i(glGetUniformLocation(programID,name.c_str()),value);
+    }void Shader::setInt(const std::string &name,int value) const{
+        glUniform1i(glGetUniformLocation(programID,name.c_str()),value);
+    }void Shader::setFloat(const std::string &name,float value) const{
+        glUniform1f(glGetUniformLocation(programID,name.c_str()),value);
     }void Shader::setMat4(const std::string &name,glm::mat4 value) const{
         glUniformMatrix4fv(glGetUniformLocation(programID,name.c_str()),1,GL_FALSE,glm::value_ptr(value));
     }void Shader::setVec3(const std::string &name,glm::vec3 value) const{
         glUniform3fv(glGetUniformLocation(programID,name.c_str()),1,glm::value_ptr(value));
     }void Shader::setVec2(const std::string &name,glm::vec2 value) const{
         glUniform2fv(glGetUniformLocation(programID,name.c_str()),1,glm::value_ptr(value));
+    }void Shader::setUniformBlock(const std::string &name,unsigned int value) const{
+        glUniformBlockBinding(programID,glGetUniformBlockIndex(programID,name.c_str()),value);
     }
 
     // ############################################################################
@@ -172,6 +174,8 @@ namespace RenderInterface{
         glEnableVertexAttribArray(3);
         glVertexAttribPointer(3,3,GL_FLOAT,GL_FALSE,sizeof(Vertex),(void*)(8*sizeof(float)));
 
+        glBindBuffer(GL_UNIFORM_BUFFER,this->UBO);
+
         glBindVertexArray(0);
     }
     void Mesh::Draw(){
@@ -233,15 +237,9 @@ namespace RenderInterface{
         //modelMat=modelMat*this->rotation;
         modelMat=glm::scale(modelMat,this->scale);
         this->shader->setMat4("model",modelMat);
-        this->shader->setMat4("view",((RenderData*)renderData)->viewMat);
-        this->shader->setMat4("proj",((RenderData*)renderData)->projMat);
         glm::mat4 normalMat=glm::transpose(glm::inverse(((RenderData*)renderData)->viewMat*modelMat));
         this->shader->setMat4("normalMat",normalMat);
         this->shader->setVec3("meshColor",this->color);
-        this->shader->setVec3("ambientLight",gameData->currentBiome->ambientLight);
-        this->shader->setVec3("directionalLightColor",gameData->currentBiome->sunDir);
-        this->shader->setVec3("directionalLightDir",gameData->currentBiome->sunCol);
-        this->shader->setMat4("dirLightSpaceMatrix",gameData->currentBiome->getLightSpaceMatrix());
         this->mesh->Draw();
         for(int i=0;i<this->childrenCount;i++)this->childNode[i]->Draw(renderData);
     }

@@ -440,3 +440,11 @@ void platform_fill_keycode_lookup_table(){
     KeyCodeLookupTable[VK_NUMPAD8] = KEY_NUMPAD_8;
     KeyCodeLookupTable[VK_NUMPAD9] = KEY_NUMPAD_9;
 }
+
+void platform_get_screen_size(int* px,int* py){
+    RECT desktop;
+    const HWND hDesktop=GetDesktopWindow();
+    GetWindowRect(hDesktop,&desktop);
+    *px=GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    *py=GetSystemMetrics(SM_CYVIRTUALSCREEN);
+}
