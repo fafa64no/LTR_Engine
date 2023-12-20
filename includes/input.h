@@ -85,7 +85,15 @@ enum Controls{
     EXIT_KEY,
     FULLBRIGHT_KEY,
     PIXELATION_KEY,
+    FREECAM_KEY,
     DEBUG_KEY,
+    ZOOMIN_KEY,
+    ZOOMOUT_KEY,
+    LOOKUP_KEY,
+    LOOKDOWN_KEY,
+    LOOKLEFT_KEY,
+    LOOKRIGHT_KEY,
+    SPRINT_KEY,
     CONTROLS_COUNT,
 };
 struct Key{
@@ -146,8 +154,14 @@ void reset_key_bindings(Input* input){
     input->keyBindings[FULLBRIGHT_KEY]=KEY_C;
     input->keyBindings[PIXELATION_KEY]=KEY_P;
     input->keyBindings[DEBUG_KEY]=KEY_R;
+    input->keyBindings[FREECAM_KEY]=KEY_F;
+    //input->keyBindings[ZOOMIN_KEY]=KEY_NUMPAD_PLUS;
+    //input->keyBindings[ZOOMOUT_KEY]=KEY_NUMPAD_MINUS;
+    input->keyBindings[ZOOMIN_KEY]=KEY_U;
+    input->keyBindings[ZOOMOUT_KEY]=KEY_I;
+    input->keyBindings[LOOKUP_KEY]=KEY_UP;
+    input->keyBindings[LOOKDOWN_KEY]=KEY_DOWN;
+    input->keyBindings[LOOKLEFT_KEY]=KEY_LEFT;
+    input->keyBindings[LOOKRIGHT_KEY]=KEY_RIGHT;
+    input->keyBindings[SPRINT_KEY]=KEY_CONTROL;
 }
-
-
-
-

@@ -80,8 +80,31 @@ void disp_ascii_chars(char* start,int length){
 // ############################################################################
 //                            Miscellaneous
 // ############################################################################
-void quatToMat(glm::mat4 &mat,glm::vec4 quat){
-    ///TODO convert quaternion to matrix
+void quatToMat(glm::mat4 &mat,glm::vec4 q){
+    mat[0][0]=(float)1-2*(q.y*q.y+q.z*q.z);
+    mat[1][0]=(float)2*(q.x*q.y-q.z*q.w);
+    mat[2][0]=(float)2*(q.x*q.z+q.y*q.w);
+    mat[3][0]=(float)0;
+    mat[0][1]=(float)2*(q.x*q.y+q.z*q.w);
+    mat[1][1]=(float)1-2*(q.x*q.x+q.z*q.z);
+    mat[2][1]=(float)2*(q.y*q.z-q.x*q.w);
+    mat[3][1]=(float)0;
+    mat[0][2]=(float)2*(q.x*q.z-q.y*q.w);
+    mat[1][2]=(float)2*(q.y*q.z+q.x*q.w);
+    mat[2][2]=(float)1-2*(q.y*q.y+q.x*q.x);
+    mat[3][2]=(float)0;
+    mat[0][3]=(float)0;
+    mat[1][3]=(float)0;
+    mat[2][3]=(float)0;
+    mat[3][3]=(float)1;
+}
+glm::vec4 vecToQuat(glm::vec4 inVec){
+    glm::vec4 res;
+    res.x=inVec.x*sin(inVec.w/2.0f);
+    res.y=inVec.y*sin(inVec.w/2.0f);
+    res.z=inVec.z*sin(inVec.w/2.0f);
+    res.w=cos(inVec.w/2.0f);
+    return res;
 }
 
 // ############################################################################

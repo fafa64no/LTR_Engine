@@ -81,7 +81,7 @@ namespace Zones{
         this->SetupProps();
     }
     void Region::SetupTerrain(RegionMesh* meshes,int meshCount){
-        for(int i=0;i<meshCount;i++)this->terrainNodes[i]=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
+        for(int i=0;i<meshCount;i++)this->terrainNodes[i]=RenderInterface::storeNode(new RenderInterface::Node(
             meshes[i].position,
             glm::vec4(0),
             glm::vec3(1.0f,1.0f,1.0f),
@@ -96,7 +96,7 @@ namespace Zones{
         this->AddDrawProps();
     }
     void Region::AddDrawTerrain(){
-        for(int i=0;i<this->terrainNodeCount;i++)RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[this->terrainNodes[i]]);
+        for(int i=0;i<this->terrainNodeCount;i++)RenderInterface::addNodeToRender(RenderInterface::nodeContainer->nodes[this->terrainNodes[i]]);
     }
     void Region::AddDrawProps(){}
 

@@ -6,7 +6,8 @@
 // ############################################################################
 //                            Game Constants
 // ############################################################################
-static float playerSpeed=25.0f;
+static float playerSpeed=8.0f;
+static float sprintModif=50.0f;
 
 // ############################################################################
 //                            Game Functions
@@ -33,7 +34,7 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
         glm::vec3(0.0f,0.0f,0.0f),
         glm::vec3(0.0f,1.0f,0.0f),
         glm::vec3(0.0f,1.0f,0.0f),
-        0.1f,
+        -100.0f,
         100.0f,
         35.0f
     );
@@ -48,7 +49,7 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
         //sort_glb_file(*bufter);
         {
             //------Testing node stuff------//
-            int bloppyId=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
+            /*int bloppyId=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
                 glm::vec3(3.0f,1.0f,2.0f),
                 glm::vec4(0.0f,0.0f,0.0f,0.0f),
                 glm::vec3(1.0f,1.0f,1.0f),
@@ -56,9 +57,9 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
                 faridTexture,
                 testShader
             ));
-            int bloppyRenderId=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[bloppyId]);
+            int bloppyRenderId=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[bloppyId]);*/
 
-            int qs=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
+            /*int qs=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
                 glm::vec3(-4.0f,10.2f,-3.0f),
                 glm::vec4(0.0f,0.0f,0.0f,0.0f),
                 glm::vec3(5.0f,5.0f,5.0f),
@@ -66,7 +67,17 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
                 faridTexture,
                 testShader
             ));
-            int fgh=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[qs]);
+            int fgh=RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[qs]);*/
+
+            int sdfsdf=RenderInterface::storeNode(new RenderInterface::Node(
+                glm::vec3(0.0f,1.0f,0.0f),
+                vecToQuat(glm::vec4(0.0f,1.0f,0.0f,0.78539f)),
+                glm::vec3(1.0f,1.0f,1.0f),
+                Scenes::meshList[Scenes::MESHID_SALLE1],
+                building1Texture,
+                diffuseShader
+            ));
+            int fgsdfsdfsh=RenderInterface::addNodeToRender(RenderInterface::nodeContainer->nodes[sdfsdf]);
         }
     }
 }
@@ -82,6 +93,15 @@ void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorag
     if(!gameData->is_paused){
         //Movement
         glm::vec3 movement=glm::vec3(0.0f,0.0f,0.0f);
+        bool isSprinting=key_is_down(input->keyBindings[SPRINT_KEY]);
+        if(key_pressed_this_frame(input->keyBindings[FREECAM_KEY])){
+            gameData->freeCam=1-gameData->freeCam;
+            if(gameData->freeCam){
+                RenderInterface::renderData->currentCamera=RenderInterface::freeCam;
+            }else{
+                RenderInterface::renderData->currentCamera=RenderInterface::playerCam;
+            }
+        }
         if(gameData->freeCam){
             RenderInterface::renderData->currentCamera->moveDir(input->mouseDir*input->sensivity*dt);
             if(key_is_down(input->keyBindings[FORWARD_KEY]))    movement.x+=1.0f;
@@ -90,9 +110,21 @@ void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorag
             if(key_is_down(input->keyBindings[RIGHT_KEY]))      movement.z-=1.0f;
             if(key_is_down(input->keyBindings[UP_KEY]))         movement.y+=1.0f;
             if(key_is_down(input->keyBindings[DOWN_KEY]))       movement.y-=1.0f;
-            RenderInterface::renderData->currentCamera->moveRelativePos(dt*playerSpeed*movement);
+            RenderInterface::renderData->currentCamera->moveRelativePos(dt*playerSpeed*movement*((isSprinting)?sprintModif:1.0f));
         }else{
-
+            glm::vec2 camMovDir{0};float sensivity=1.0f;
+            if(key_is_down(input->keyBindings[LOOKUP_KEY]))     camMovDir.y+=2.0f;
+            if(key_is_down(input->keyBindings[LOOKDOWN_KEY]))   camMovDir.y-=2.0f;
+            if(key_is_down(input->keyBindings[LOOKLEFT_KEY]))   camMovDir.x+=1.0f;
+            if(key_is_down(input->keyBindings[LOOKRIGHT_KEY]))  camMovDir.x-=1.0f;
+            RenderInterface::renderData->currentCamera->moveDir(camMovDir*sensivity*dt*((isSprinting)?sprintModif:1.0f));
+            if(key_is_down(input->keyBindings[FORWARD_KEY]))    movement.y+=1.0f;
+            if(key_is_down(input->keyBindings[BACKWARD_KEY]))   movement.y-=1.0f;
+            if(key_is_down(input->keyBindings[LEFT_KEY]))       movement.z+=1.0f;
+            if(key_is_down(input->keyBindings[RIGHT_KEY]))      movement.z-=1.0f;
+            if(key_is_down(input->keyBindings[UP_KEY]))         movement.x+=0.2f;
+            if(key_is_down(input->keyBindings[DOWN_KEY]))       movement.x-=0.2f;
+            RenderInterface::renderData->currentCamera->moveRelativePos(dt*playerSpeed*movement*((isSprinting)?sprintModif:1.0f));
         }
         //Rendering
         if(key_pressed_this_frame(input->keyBindings[FULLBRIGHT_KEY])){
@@ -109,11 +141,17 @@ void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorag
                 RenderInterface::renderData->pixelation=1;
             }
         }
+        if(key_is_down(input->keyBindings[ZOOMIN_KEY])){
+            RenderInterface::renderData->currentCamera->updateZoom(0.975f);
+        }
+        if(key_is_down(input->keyBindings[ZOOMOUT_KEY])){
+            RenderInterface::renderData->currentCamera->updateZoom(1.025f);
+        }
         //Debug
         if(gameData->debugMode){
             SM_TRACE("----------DebugStuff----------");
             RenderInterface::renderData->currentCamera->debugPrint();
-            for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->mesh->DebugTrace();
+            //for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->mesh->DebugTrace();
         }
         if(key_pressed_this_frame(input->keyBindings[DEBUG_KEY])){
             gameData->debugMode=true;

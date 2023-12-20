@@ -8,11 +8,13 @@ namespace Scenes{
     // ############################################################################
     //                            Scene declaration
     // ############################################################################
-    static RenderInterface::Scene* testShapes;
-    static RenderInterface::Scene* fishes;
-    static RenderInterface::Scene* fishes2;
-    static RenderInterface::Scene* baseDecor;
-    static RenderInterface::Scene* baseDecor2;
+    using namespace RenderInterface;
+    static Scene* testShapes;
+    static Scene* fishes;
+    static Scene* fishes2;
+    static Scene* baseDecor;
+    static Scene* baseDecor2;
+    static Scene* salles;
 
     enum mesh_enum{
         MESHID_CUBE,
@@ -25,6 +27,7 @@ namespace Scenes{
         MESHID_BUILDING1,
         MESHID_BUILDING2,
         MESHID_BUILDING3,
+        MESHID_SALLE1,
         MESHID_COUNT
     };
     static RenderInterface::Mesh** meshList;
@@ -39,6 +42,7 @@ namespace Scenes{
         //fishes2= new RenderInterface::Scene("assets/meshes/Creatures/Chinosaure_decimated.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
         baseDecor=new RenderInterface::Scene("assets/meshes/Decor/baseDecor.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
         baseDecor2=new RenderInterface::Scene("assets/meshes/Decor/baseDecor2.glb",GL_DYNAMIC_DRAW,persistentStorage,transientStorage);
+        salles=new Scene("assets/meshes/Decor/salle.glb",GL_STATIC_DRAW,persistentStorage,transientStorage);
 
         //Alloc memory
         meshList=(RenderInterface::Mesh**)bump_alloc(persistentStorage,sizeof(RenderInterface::Mesh*)*((int)MESHID_COUNT));
@@ -51,12 +55,14 @@ namespace Scenes{
         meshList[MESHID_BLOPPY]     =testShapes->nodes[testShapes->getNodeWithName("Bloppy")]->mesh;
 
         meshList[MESHID_PWASCEONAIN]=fishes->nodes[fishes->getNodeWithName("Cone 3")]->mesh;
-        meshList[MESHID_CHINOSAURE]=fishes->nodes[fishes->getNodeWithName("Cone 3")]->mesh;
+        meshList[MESHID_CHINOSAURE] =fishes->nodes[fishes->getNodeWithName("Cone 3")]->mesh;
 
         meshList[MESHID_GROUND]     =baseDecor2->nodes[baseDecor2->getNodeWithName("ground")]->mesh;
         meshList[MESHID_BUILDING1]  =baseDecor2->nodes[baseDecor2->getNodeWithName("building1")]->mesh;
         meshList[MESHID_BUILDING2]  =baseDecor2->nodes[baseDecor2->getNodeWithName("building2")]->mesh;
         meshList[MESHID_BUILDING3]  =baseDecor2->nodes[baseDecor2->getNodeWithName("building3")]->mesh;
+
+        meshList[MESHID_SALLE1]     =salles->nodes[salles->getNodeWithName("Plane.001")]->mesh;
 
         return 1;
     }

@@ -195,26 +195,26 @@ namespace RenderInterface{
     Node::Node(glm::vec3 position,glm::vec4 rotation,glm::vec3 scale){
         //SM_TRACE("\tBuilding node");
         this->position=position;
-        quatToMat(this->rotation,rotation);
+        this->rotation=rotation;
         this->scale=(scale.x==0)?glm::vec3(1.0f,1.0f,1.0f):scale;
         this->texture=faridTexture;
         this->shader=testShader;
     }
     Node::Node(glm::vec3 position,glm::vec4 rotation,glm::vec3 scale,Mesh* mesh,Texture* texture,Shader* shader){
-        SM_TRACE("\tBuilding node");
+        //SM_TRACE("\tBuilding node");
         this->mesh=mesh;
         this->position=position;
-        quatToMat(this->rotation,rotation);
+        this->rotation=rotation;
         this->scale=(scale.x==0)?glm::vec3(1.0f,1.0f,1.0f):scale;
         this->texture=texture;
         this->shader=shader;
         this->color=glm::vec3(1.0f,1.0f,1.0f);
     }
     Node::Node(glm::vec3 position,glm::vec4 rotation,glm::vec3 scale,Mesh* mesh,Texture* texture,Shader* shader,glm::vec3 color){
-        SM_TRACE("\tBuilding node");
+        //SM_TRACE("\tBuilding node");
         this->mesh=mesh;
         this->position=position;
-        quatToMat(this->rotation,rotation);
+        this->rotation=rotation;
         this->scale=(scale.x==0)?glm::vec3(1.0f,1.0f,1.0f):scale;
         this->texture=texture;
         this->shader=shader;
@@ -230,7 +230,9 @@ namespace RenderInterface{
         glm::mat4 projMat=glm::perspective(glm::radians(45.0f),(float)input->screenSize.x/(float)input->screenSize.y, 0.1f, 100.0f);
         glm::mat4 modelMat=glm::mat4(1.0f);
         modelMat=glm::translate(modelMat,this->position);
-        //modelMat=modelMat*this->rotation;
+        glm::mat4 temp;
+        quatToMat(temp,this->rotation);
+        modelMat*=temp;
         modelMat=glm::scale(modelMat,this->scale);
         this->shader->setMat4("model",modelMat);
         this->shader->setMat4("view",((RenderData*)renderData)->viewMat);
@@ -249,7 +251,9 @@ namespace RenderInterface{
         shader.use();
         glm::mat4 modelMat=glm::mat4(1.0f);
         modelMat=glm::translate(modelMat,this->position);
-        //modelMat=modelMat*this->rotation;
+        glm::mat4 temp;
+        quatToMat(temp,this->rotation);
+        modelMat*=temp;
         modelMat=glm::scale(modelMat,this->scale);
         shader.setMat4("model",modelMat);
         shader.setMat4("lightSpaceMatrix",gameData->currentBiome->getLightSpaceMatrix());
@@ -261,7 +265,7 @@ namespace RenderInterface{
         for(int i=0;i<this->childrenCount;i++)this->childNode[i]->translate(translation);
     }
     void Node::rotate(glm::vec4 rotation){
-        //this->rotation=rotation;
+        this->rotation+=rotation;
         for(int i=0;i<this->childrenCount;i++)this->childNode[i]->rotate(rotation);
     }
     void Node::reScale(glm::vec3 scale){
@@ -391,11 +395,11 @@ namespace RenderInterface{
         this->updateCamFront();
         this->camView=(this->cameraType==PERSPECTIVE_CAMERA)
             ?glm::lookAt(this->camPos,this->camPos+this->camFront,this->camUp)
-            :glm::lookAt(this->camPos+this->offset,this->camPos,this->camUp);
+            :glm::lookAt(this->camPos+this->offset,this->camPos+this->camFront,this->camUp);
     }
     void Camera::updateProjMat(){
         this->camProj=(this->cameraType==PERSPECTIVE_CAMERA)
-            ?glm::perspective(glm::radians(45.0f),this->aspectRatio,this->camNear,this->camFar)
+            ?glm::perspective(glm::radians(this->fov),this->aspectRatio,this->camNear,this->camFar)
             :glm::ortho(-this->camWidth,this->camWidth,-this->camWidth*this->aspectRatio,this->camWidth*this->aspectRatio,this->camNear,this->camFar);
     }
     void Camera::updateCamFront(){
@@ -412,6 +416,13 @@ namespace RenderInterface{
     void Camera::updateRange(float camNear,float camFar){
         this->camNear=camNear;
         this->camFar=camFar;
+    }
+    void Camera::updateZoom(float zoom){
+        if(this->cameraType==PERSPECTIVE_CAMERA)this->fov*=zoom;
+        else this->camWidth*=zoom;
+    }
+    void Camera::setFov(float fov){
+        this->fov=fov;
     }
     void Camera::debugPrint(){
         char msg[1024]{0};
