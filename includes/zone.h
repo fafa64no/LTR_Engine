@@ -145,7 +145,7 @@ namespace Zones{
         }
         testRegion=new Region(
             meshes,
-            nmeshes,
+            0,//nmeshes,
             persistentStorage
         );
     }

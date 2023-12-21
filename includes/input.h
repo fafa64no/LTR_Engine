@@ -94,6 +94,10 @@ enum Controls{
     LOOKLEFT_KEY,
     LOOKRIGHT_KEY,
     SPRINT_KEY,
+    TEST_FORWARD_KEY,
+    TEST_BACKWARD_KEY,
+    TEST_LEFT_KEY,
+    TEST_RIGHT_KEY,
     CONTROLS_COUNT,
 };
 struct Key{
@@ -164,4 +168,8 @@ void reset_key_bindings(Input* input){
     input->keyBindings[LOOKLEFT_KEY]=KEY_LEFT;
     input->keyBindings[LOOKRIGHT_KEY]=KEY_RIGHT;
     input->keyBindings[SPRINT_KEY]=KEY_CONTROL;
+    input->keyBindings[TEST_FORWARD_KEY]=KEY_O;
+    input->keyBindings[TEST_BACKWARD_KEY]=KEY_L;
+    input->keyBindings[TEST_LEFT_KEY]=KEY_K;
+    input->keyBindings[TEST_RIGHT_KEY]=KEY_M;
 }
