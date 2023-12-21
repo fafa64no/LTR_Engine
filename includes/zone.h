@@ -29,13 +29,13 @@ namespace Zones{
     class Region{
     public:
         Region(RegionMesh* meshes,int meshCount,BumpAllocator* bumpAllocator);
-        void Draw();
+        void AddDraw();
     private:
         int *terrainNodes{nullptr},*propsNodes{nullptr},terrainNodeCount{0},propsNodeCount{0};
         void SetupTerrain(RegionMesh* meshes,int meshCount);
         void SetupProps();
-        void DrawTerrain();
-        void DrawProps();
+        void AddDrawTerrain();
+        void AddDrawProps();
     };
 
     // ############################################################################
@@ -81,7 +81,7 @@ namespace Zones{
         this->SetupProps();
     }
     void Region::SetupTerrain(RegionMesh* meshes,int meshCount){
-        for(int i=0;i<meshCount;i++)this->terrainNodes[i]=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
+        for(int i=0;i<meshCount;i++)this->terrainNodes[i]=RenderInterface::storeNode(new RenderInterface::Node(
             meshes[i].position,
             glm::vec4(0),
             glm::vec3(1.0f,1.0f,1.0f),
@@ -91,14 +91,14 @@ namespace Zones{
         ));
     }
     void Region::SetupProps(){}
-    void Region::Draw(){
-        this->DrawTerrain();
-        this->DrawProps();
+    void Region::AddDraw(){
+        this->AddDrawTerrain();
+        this->AddDrawProps();
     }
-    void Region::DrawTerrain(){
-        for(int i=0;i<this->terrainNodeCount;i++)RenderInterface::addNodeToRender(RenderInterface::renderData,RenderInterface::nodeContainer->nodes[this->terrainNodes[i]]);
+    void Region::AddDrawTerrain(){
+        for(int i=0;i<this->terrainNodeCount;i++)RenderInterface::addNodeToRender(RenderInterface::nodeContainer->nodes[this->terrainNodes[i]]);
     }
-    void Region::DrawProps(){}
+    void Region::AddDrawProps(){}
 
     // ############################################################################
     //                            Zone Functions
@@ -145,7 +145,7 @@ namespace Zones{
         }
         testRegion=new Region(
             meshes,
-            nmeshes,
+            0,//nmeshes,
             persistentStorage
         );
     }

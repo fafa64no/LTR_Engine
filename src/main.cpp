@@ -26,6 +26,7 @@ double get_delta_time();
 #include "gl_renderer.cpp"
 #include "scenes.h"
 #include "render_interface.cpp"
+#include "characters.cpp"
 #include "game.cpp"
 
 // ############################################################################

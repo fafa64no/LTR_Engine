@@ -96,15 +96,16 @@ void gl_render_3D_layer(){
 }
 // ############################################################################
 void gl_render(){
+    using namespace RenderInterface;
     unsigned int width{(unsigned int)input->screenSize.x},height{(unsigned int)input->screenSize.y};
-    unsigned int pixWidth{(unsigned int)width/RenderInterface::renderData->pixelation},pixHeight{(unsigned int)height/RenderInterface::renderData->pixelation};
+    unsigned int pixWidth{(unsigned int)width/renderData->pixelation},pixHeight{(unsigned int)height/renderData->pixelation};
     //Render shadow map
     glViewport(0,0,DIR_SHADOW_WIDTH,DIR_SHADOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER,dirLightDepthMapFBO);
     glEnable(GL_DEPTH_TEST);
     glClear(GL_DEPTH_BUFFER_BIT);
     gameData->currentBiome->updateLightSpaceMatrix();
-    for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->CastShadow(*dirShadowShader,RenderInterface::renderData);
+    for(int i=0;i<renderData->nodeCount;i++)renderData->nodes_to_render[i]->CastShadow(*dirShadowShader,renderData);
     glBindFramebuffer(GL_FRAMEBUFFER,0);
     //Render view
     glViewport(0,0,pixWidth,pixHeight);
@@ -113,13 +114,13 @@ void gl_render(){
     gl_clear();
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D,dirLightDepthMap);
-    RenderInterface::renderData->currentCamera->updateRatio(input->screenRatio);
-    RenderInterface::renderData->currentCamera->updateViewMat();
-    RenderInterface::renderData->currentCamera->updateProjMat();
-    RenderInterface::renderData->viewMat=RenderInterface::renderData->currentCamera->viewMat();
-    RenderInterface::renderData->projMat=RenderInterface::renderData->currentCamera->projMat();
+    renderData->currentCamera->updateRatio(input->screenRatio);
+    renderData->currentCamera->updateViewMat();
+    renderData->currentCamera->updateProjMat();
+    renderData->viewMat=renderData->currentCamera->viewMat();
+    renderData->projMat=renderData->currentCamera->projMat();
     gl_render_3D_layer();
-    for(int i=0;i<RenderInterface::renderData->nodeCount;i++)RenderInterface::renderData->nodes_to_render[i]->Draw(RenderInterface::renderData);
+    for(int i=0;i<renderData->nodeCount;i++)renderData->nodes_to_render[i]->Draw(renderData);
     glBindFramebuffer(GL_FRAMEBUFFER,0);
     //Post processing
     glViewport(0,0,width,height);
@@ -214,7 +215,7 @@ bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     SM_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE,"Depthmap framebuffer incomplete");
     glBindFramebuffer(GL_FRAMEBUFFER,0);
 
-    RenderInterface::renderData->pixelation=4;
+    RenderInterface::renderData->pixelation=1;
     return true;
 }
 

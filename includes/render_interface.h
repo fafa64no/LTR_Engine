@@ -105,6 +105,7 @@ namespace RenderInterface{
         std::vector<unsigned int> indices;
         void Draw();
         void CastShadow();
+        void DebugTrace();
     private:
         unsigned int VAO,VBO,EBO;
         void setupMesh();
@@ -127,10 +128,8 @@ namespace RenderInterface{
         Node** childNode;
         unsigned int childrenCount=0;
     private:
-        glm::vec3 position;
-        glm::mat4 rotation;
-        glm::vec3 scale;
-        glm::vec3 color;
+        glm::vec3 position,scale,color;
+        glm::vec4 rotation;
     };
     class Scene{
     public:
@@ -166,6 +165,8 @@ namespace RenderInterface{
 
         void updateRatio(float aspectRatio);
         void updateRange(float camNear,float camFar);
+        void updateZoom(float zoom);
+        void setFov(float fov);
         void debugPrint();
 
         void setPos(glm::vec3 camPos);
@@ -180,7 +181,7 @@ namespace RenderInterface{
         glm::mat4 camView,camProj;
         glm::vec3 camPos,camFront,camUp,offset;
         CameraType cameraType;
-        float camNear,camFar,camWidth,aspectRatio{1.0f},yaw{0.0f},pitch{0.0f};
+        float camNear,camFar,camWidth,aspectRatio{1.0f},yaw{0.0f},pitch{0.0f},fov{45.0f};
     };
     struct RenderData{
         Camera* currentCamera;
@@ -193,19 +194,6 @@ namespace RenderInterface{
         Node* nodes[MAX_NODES];
         unsigned int nodeCount=0;
     };
-    // ############################################################################
-    //                            Render Functions
-    // ############################################################################
-    int addNodeToRender(RenderData* renderData,Node* node){
-        if(renderData->nodeCount==MAX_NODES_TO_RENDER)return -1;
-        renderData->nodes_to_render[renderData->nodeCount]=node;
-        return renderData->nodeCount++;
-    }
-    int storeNode(NodeContainer* nodeContainer,Node* node){
-        if(nodeContainer->nodeCount==MAX_NODES)return -1;
-        nodeContainer->nodes[nodeContainer->nodeCount]=node;
-        return nodeContainer->nodeCount++;
-    }
 
     // ############################################################################
     //                            Render Globals
@@ -215,4 +203,18 @@ namespace RenderInterface{
 
     static Camera* freeCam;
     static Camera* playerCam;
+
+    // ############################################################################
+    //                            Render Functions
+    // ############################################################################
+    int addNodeToRender(Node* node){
+        if(renderData->nodeCount==MAX_NODES_TO_RENDER)return -1;
+        renderData->nodes_to_render[renderData->nodeCount]=node;
+        return renderData->nodeCount++;
+    }
+    int storeNode(Node* node){
+        if(nodeContainer->nodeCount==MAX_NODES)return -1;
+        nodeContainer->nodes[nodeContainer->nodeCount]=node;
+        return nodeContainer->nodeCount++;
+    }
 };
