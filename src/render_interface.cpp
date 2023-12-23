@@ -260,6 +260,9 @@ namespace RenderInterface{
         this->mesh->CastShadow();
         for(int i=0;i<this->childrenCount;i++)this->childNode[i]->CastShadow(shader,renderData);
     }
+    glm::vec3 Node::getPos(){
+        return this->position;
+    }
     void Node::translate(glm::vec3 translation){
         this->position+=translation;
         for(int i=0;i<this->childrenCount;i++)this->childNode[i]->translate(translation);
@@ -335,7 +338,6 @@ namespace RenderInterface{
         this->camNear=camNear;
         this->camFar=camFar;
         this->camWidth=0.0f;
-        this->updateCamFront();
         this->updateViewMat();
         this->updateProjMat();
     }
@@ -349,7 +351,6 @@ namespace RenderInterface{
         this->camNear=camNear;
         this->camFar=camFar;
         this->camWidth=camWidth;
-        this->updateCamFront();
         this->updateViewMat();
         this->updateProjMat();
     }
@@ -363,7 +364,6 @@ namespace RenderInterface{
         this->camNear=camNear;
         this->camFar=camFar;
         this->camWidth=0.0f;
-        this->updateCamFront();
         this->updateViewMat();
         this->updateProjMat();
     }
@@ -377,7 +377,6 @@ namespace RenderInterface{
         this->camNear=camNear;
         this->camFar=camFar;
         this->camWidth=camWidth;
-        this->updateCamFront();
         this->updateViewMat();
         this->updateProjMat();
     }
@@ -395,10 +394,10 @@ namespace RenderInterface{
         this->updateCamFront();
         this->camView=(this->cameraType==PERSPECTIVE_CAMERA)
             ?glm::lookAt(this->camPos,this->camPos+this->camFront,this->camUp)
-            :glm::lookAt(this->camPos+this->offset,this->camPos+this->camFront,this->camUp);
+            :glm::lookAt(this->camPos+this->offset,this->camPos,this->camUp);
     }
     void Camera::updateProjMat(){
-        this->camProj=(this->cameraType==PERSPECTIVE_CAMERA)
+        this->camProj=(this->cameraType!=ORTHOGRAPHIC_CAMERA)
             ?glm::perspective(glm::radians(this->fov),this->aspectRatio,this->camNear,this->camFar)
             :glm::ortho(-this->camWidth,this->camWidth,-this->camWidth*this->aspectRatio,this->camWidth*this->aspectRatio,this->camNear,this->camFar);
     }
@@ -411,7 +410,7 @@ namespace RenderInterface{
     }
 
     void Camera::updateRatio(float aspectRatio){
-        this->aspectRatio=(this->cameraType==PERSPECTIVE_CAMERA)?1.0f/aspectRatio:aspectRatio;
+        this->aspectRatio=(this->cameraType!=ORTHOGRAPHIC_CAMERA)?1.0f/aspectRatio:aspectRatio;
     }
     void Camera::updateRange(float camNear,float camFar){
         this->camNear=camNear;
@@ -489,6 +488,16 @@ namespace RenderInterface{
     }
     void Camera::setOffset(glm::vec3 offset){
         this->offset=offset;
+    }
+    void Camera::setOffsetYaw(float yaw){
+        glm::vec2 planarOffset=
+            glm::length(glm::vec2(this->offset.x,this->offset.z))
+            *glm::vec2(glm::cos(glm::radians(yaw)),glm::sin(glm::radians(yaw)));
+        this->offset.x=planarOffset.x;
+        this->offset.z=planarOffset.y;
+    }
+    void Camera::updateOffsetHeight(float height){
+        this->offset.y+=height;
     }
 
     void Camera::movePos(glm::vec3 camPos){

@@ -12,6 +12,29 @@ static float sprintModif=10.0f;
 static float blorpSpeed=12.5748f;
 static int blorpinator9001;
 
+// Debug
+static int currentCam{0};
+static float camAngles[8]{
+    22.5f,
+    67.5f,
+    112.5,
+    157.5,
+    202.5,
+    247.5,
+    292.5,
+    337.5
+};
+static float movAngles[8]{
+    90.0f,
+    180.0f,
+    180.0f,
+    270.0f,
+    270.0f,
+    0.0f,
+    0.0f,
+    90.0f
+};
+
 // ############################################################################
 //                            Game Functions
 // ############################################################################
@@ -28,7 +51,7 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
     gameData->currentRegion->AddDraw();
     gameData->debugMode=true;
     RenderInterface::freeCam=new RenderInterface::Camera(
-        glm::vec3(0.0f,10.0f,0.0f),
+        glm::vec3(0.0f,1.0f,0.0f),
         glm::vec3(0.0f,1.0f,0.0f),
         0.1f,
         500.0f
@@ -36,22 +59,21 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
     RenderInterface::playerCam=new RenderInterface::Camera(
         glm::vec3(0.0f,0.0f,0.0f),
         glm::vec3(0.0f,1.0f,0.0f),
-        glm::vec3(0.0f,1.0f,0.0f),
-        -500.0f,
-        500.0f,
-        35.0f
+        glm::vec3(10.0f,7.0f,10.0f),
+        -100.0f,
+        100.0f,
+        15.0f
     );
-    gameData->freeCam=true;
-    RenderInterface::renderData->currentCamera=RenderInterface::freeCam;
-
-
+    RenderInterface::playerCam->setOffsetYaw(camAngles[currentCam]);
+    gameData->freeCam=false;
+    RenderInterface::renderData->currentCamera=RenderInterface::playerCam;
 
     {
         //------Testing glb stuff------//
-        std::vector<char>* bufter;
-        read_glb_file("assets/meshes/Decor/Test.glb",bufter,transientStorage);
+        //std::vector<char>* bufter;
+        //read_glb_file("assets/meshes/Decor/Test.glb",bufter,transientStorage);
         //read_glb_file("assets/meshes/Creatures/Chinosaure_decimated.glb",bufter,transientStorage);
-        sort_glb_file(*bufter);
+        //sort_glb_file(*bufter);
         {
             //------Testing node stuff------//
             /*int bloppyId=RenderInterface::storeNode(RenderInterface::nodeContainer,new RenderInterface::Node(
@@ -237,13 +259,12 @@ void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorag
                 RenderInterface::renderData->currentCamera=RenderInterface::freeCam;
             }else{
                 RenderInterface::renderData->currentCamera=RenderInterface::playerCam;
+                RenderInterface::renderData->currentCamera->setOffsetYaw(camAngles[currentCam]);
             }
         }
-        if(key_is_down(input->keyBindings[TEST_FORWARD_KEY]))RenderInterface::nodeContainer->nodes[blorpinator9001]->translate(glm::vec3(0,0,1)*dt*blorpSpeed*((isSprinting)?sprintModif:1.0f));
-        if(key_is_down(input->keyBindings[TEST_BACKWARD_KEY]))RenderInterface::nodeContainer->nodes[blorpinator9001]->translate(-glm::vec3(0,0,1)*dt*blorpSpeed*((isSprinting)?sprintModif:1.0f));
-        if(key_is_down(input->keyBindings[TEST_LEFT_KEY]))RenderInterface::nodeContainer->nodes[blorpinator9001]->translate(glm::vec3(1,0,0)*dt*blorpSpeed*((isSprinting)?sprintModif:1.0f));
-        if(key_is_down(input->keyBindings[TEST_RIGHT_KEY]))RenderInterface::nodeContainer->nodes[blorpinator9001]->translate(-glm::vec3(1,0,0)*dt*blorpSpeed*((isSprinting)?sprintModif:1.0f));
+
         if(gameData->freeCam){
+            //Camera movement
             RenderInterface::renderData->currentCamera->moveDir(input->mouseDir*input->sensivity*dt);
             if(key_is_down(input->keyBindings[FORWARD_KEY]))    movement.x+=1.0f;
             if(key_is_down(input->keyBindings[BACKWARD_KEY]))   movement.x-=1.0f;
@@ -253,19 +274,31 @@ void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorag
             if(key_is_down(input->keyBindings[DOWN_KEY]))       movement.y-=1.0f;
             RenderInterface::renderData->currentCamera->moveRelativePos(dt*playerSpeed*movement*((isSprinting)?sprintModif:1.0f));
         }else{
+            //Player movement
+            glm::vec3 translator=glm::vec3(0.0f,0.0f,0.0f);
+            if(key_is_down(input->keyBindings[FORWARD_KEY]))   translator.z+=1.0f;
+            if(key_is_down(input->keyBindings[BACKWARD_KEY]))  translator.z-=1.0f;
+            if(key_is_down(input->keyBindings[LEFT_KEY]))      translator.x+=1.0f;
+            if(key_is_down(input->keyBindings[RIGHT_KEY]))     translator.x-=1.0f;
+            glm::vec2 planarTranslator;
+            planarTranslator.x=translator.x*glm::cos(glm::radians(movAngles[currentCam]))-translator.z*glm::sin(glm::radians(movAngles[currentCam]));
+            planarTranslator.y=translator.x*glm::sin(glm::radians(movAngles[currentCam]))+translator.z*glm::cos(glm::radians(movAngles[currentCam]));
+            translator.x=planarTranslator.x;
+            translator.z=planarTranslator.y;
+            RenderInterface::nodeContainer->nodes[blorpinator9001]->translate(translator*dt*blorpSpeed*((isSprinting)?sprintModif:1.0f));
+            //Camera movement
             glm::vec2 camMovDir{0};float sensivity=1.0f;
-            if(key_is_down(input->keyBindings[LOOKUP_KEY]))     camMovDir.y+=2.0f;
-            if(key_is_down(input->keyBindings[LOOKDOWN_KEY]))   camMovDir.y-=2.0f;
-            if(key_is_down(input->keyBindings[LOOKLEFT_KEY]))   camMovDir.x+=1.0f;
-            if(key_is_down(input->keyBindings[LOOKRIGHT_KEY]))  camMovDir.x-=1.0f;
-            RenderInterface::renderData->currentCamera->moveDir(camMovDir*sensivity*dt*((isSprinting)?sprintModif:1.0f)*5.0f);
-            if(key_is_down(input->keyBindings[FORWARD_KEY]))    movement.y+=1.0f;
-            if(key_is_down(input->keyBindings[BACKWARD_KEY]))   movement.y-=1.0f;
-            if(key_is_down(input->keyBindings[LEFT_KEY]))       movement.z+=1.0f;
-            if(key_is_down(input->keyBindings[RIGHT_KEY]))      movement.z-=1.0f;
-            if(key_is_down(input->keyBindings[UP_KEY]))         movement.x+=0.2f;
-            if(key_is_down(input->keyBindings[DOWN_KEY]))       movement.x-=0.2f;
-            RenderInterface::renderData->currentCamera->moveRelativePos(dt*playerSpeed*movement*((isSprinting)?sprintModif:1.0f));
+            if(key_is_down(input->keyBindings[LOOKUP_KEY]))     RenderInterface::renderData->currentCamera->updateOffsetHeight(0.4f*dt*((isSprinting)?sprintModif:1.0f));
+            if(key_is_down(input->keyBindings[LOOKDOWN_KEY]))   RenderInterface::renderData->currentCamera->updateOffsetHeight(-0.4f*dt*((isSprinting)?sprintModif:1.0f));
+            if(key_pressed_this_frame(input->keyBindings[LOOKLEFT_KEY])){
+                currentCam=(currentCam+1)%8;
+                RenderInterface::renderData->currentCamera->setOffsetYaw(camAngles[currentCam]);
+            }
+            if(key_pressed_this_frame(input->keyBindings[LOOKRIGHT_KEY])){
+                currentCam=(currentCam+15)%8;
+                RenderInterface::renderData->currentCamera->setOffsetYaw(camAngles[currentCam]);
+            }
+            RenderInterface::renderData->currentCamera->setPos(RenderInterface::nodeContainer->nodes[blorpinator9001]->getPos());
         }
         //Rendering
         if(key_pressed_this_frame(input->keyBindings[FULLBRIGHT_KEY])){

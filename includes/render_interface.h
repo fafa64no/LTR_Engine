@@ -121,6 +121,7 @@ namespace RenderInterface{
         Shader* shader;
         void Draw(void* renderData);
         void CastShadow(Shader &shader,void* renderData);
+        glm::vec3 getPos();
         char name[16]={0};
         void translate(glm::vec3 translation);
         void rotate(glm::vec4 rotation);
@@ -147,6 +148,7 @@ namespace RenderInterface{
     // ############################################################################
     enum CameraType{
         PERSPECTIVE_CAMERA,
+        CENTERED_PERSPECTIVE_CAMERA,
         ORTHOGRAPHIC_CAMERA,
     };
     class Camera{
@@ -172,6 +174,8 @@ namespace RenderInterface{
         void setPos(glm::vec3 camPos);
         void setDir(float yaw,float pitch);
         void setOffset(glm::vec3 offset);
+        void setOffsetYaw(float yaw);
+        void updateOffsetHeight(float height);
 
         void movePos(glm::vec3 camPos);
         void moveRelativePos(glm::vec3 camRelativePos);
