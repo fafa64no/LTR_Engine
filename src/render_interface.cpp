@@ -7,11 +7,11 @@ namespace RenderInterface{
     // ############################################################################
     //                            Shader Functions
     // ############################################################################
-    Shader::Shader(char* vertexPath, char* fragmentPath,BumpAllocator* bumpAllocator){
+    Shader::Shader(char* vertexPath, char* fragmentPath){
     // 1. retrieve the vertex/fragment source code from filePath
         int vShaderFileSize,fShaderFileSize;
-        const char* vShaderCode=read_file(vertexPath,&vShaderFileSize,bumpAllocator);
-        const char* fShaderCode=read_file(fragmentPath,&fShaderFileSize,bumpAllocator);
+        const char* vShaderCode=read_file(vertexPath,&vShaderFileSize,&persistentStorage);
+        const char* fShaderCode=read_file(fragmentPath,&fShaderFileSize,&persistentStorage);
         SM_ASSERT(vShaderCode,"Failed to read shader: %s",vertexPath);
         SM_ASSERT(fShaderCode,"Failed to read shader: %s",fragmentPath);
     // 2. compile shaders
@@ -279,13 +279,13 @@ namespace RenderInterface{
     // ############################################################################
     //                            Scene Functions
     // ############################################################################
-    Scene::Scene(char* scenePath,unsigned int type,BumpAllocator* persistentStorage,BumpAllocator* transientStorage){
+    Scene::Scene(char* scenePath,unsigned int type){
         std::vector<char>* buffer;
-        read_glb_file(scenePath,buffer,persistentStorage);
+        read_glb_file(scenePath,buffer);
         int binStart{-1};
         int bufferCount{0}, bufferViewCount{0},         accessorCount{0},       skinConstructorCount{0},            materialConstructorCount{0},                meshConstructorCount{0},            nodeConstructorCount{0},            animationConstructorCount{0};
         Buffer* buffers;    BufferView* bufferViews;    Accessor* accessors;    SkinConstructor* skinConstructors;  MaterialConstructor* materialConstructors;  MeshConstructor* meshConstructors;  NodeConstructor* nodeConstructors;  AnimationConstructor* animationConstructors;
-        get_glb_structure(transientStorage,
+        get_glb_structure(
                             *buffer,                binStart,
                             buffers,                bufferCount,
                             bufferViews,            bufferViewCount,
@@ -300,7 +300,7 @@ namespace RenderInterface{
         SM_TRACE("Building scene");
         SM_TRACE((char*)std::to_string(nodeConstructorCount).c_str());
         this->nodeCount=nodeConstructorCount;
-        this->nodes=(Node**)bump_alloc(persistentStorage,sizeof(Node*)*this->nodeCount);
+        this->nodes=(Node**)bump_alloc(&persistentStorage,sizeof(Node*)*this->nodeCount);
         for(int i=0;i<nodeConstructorCount;i++){
             //Build nodes
             this->nodes[i]=new Node(

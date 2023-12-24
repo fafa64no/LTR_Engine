@@ -45,18 +45,18 @@ namespace Scenes{
     // ############################################################################
     //                            Scene build
     // ############################################################################
-    int SetupScenes(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
+    int SetupScenes(){
         //Import scenes
-        testShapes=new RenderInterface::Scene("assets/meshes/BasicShapes/testShape.glb",GL_STATIC_DRAW,persistentStorage,transientStorage);
-        fishes=new RenderInterface::Scene("assets/meshes/Creatures/Poisson2.glb",GL_STATIC_DRAW,persistentStorage,transientStorage);
-        //fishes2= new RenderInterface::Scene("assets/meshes/Creatures/Chinosaure_decimated.glb",GL_STATIC_DRAW,persistentStorage,transientStorage);
-        baseDecor=new RenderInterface::Scene("assets/meshes/Decor/baseDecor.glb",GL_STATIC_DRAW,persistentStorage,transientStorage);
-        baseDecor2=new RenderInterface::Scene("assets/meshes/Decor/baseDecor2.glb",GL_STATIC_DRAW,persistentStorage,transientStorage);
-        testRooms=new Scene("assets/meshes/Decor/Test.glb",GL_STATIC_DRAW,persistentStorage,transientStorage);
-        testChars=new Scene("assets/meshes/Characters/Perso.glb",GL_STATIC_DRAW,persistentStorage,transientStorage);
+        testShapes=new Scene("assets/meshes/BasicShapes/testShape.glb",GL_STATIC_DRAW);
+        fishes=new Scene("assets/meshes/Creatures/Poisson2.glb",GL_STATIC_DRAW);
+        //fishes2= new Scene("assets/meshes/Creatures/Chinosaure_decimated.glb",GL_STATIC_DRAW);
+        baseDecor=new Scene("assets/meshes/Decor/baseDecor.glb",GL_STATIC_DRAW);
+        baseDecor2=new Scene("assets/meshes/Decor/baseDecor2.glb",GL_STATIC_DRAW);
+        testRooms=new Scene("assets/meshes/Decor/Test.glb",GL_STATIC_DRAW);
+        testChars=new Scene("assets/meshes/Characters/Perso.glb",GL_STATIC_DRAW);
 
         //Alloc memory
-        meshList=(RenderInterface::Mesh**)bump_alloc(persistentStorage,sizeof(RenderInterface::Mesh*)*((int)MESHID_COUNT));
+        meshList=(Mesh**)bump_alloc(&persistentStorage,sizeof(Mesh*)*((int)MESHID_COUNT));
 
         //Store meshes
         SM_TRACE("Storing meshes");

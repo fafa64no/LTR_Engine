@@ -60,7 +60,7 @@ namespace RenderInterface{
     class Shader{
     public:
         unsigned int programID;
-        Shader(char* vertexPath,char* fragmentPath,BumpAllocator* bumpAllocator);
+        Shader(char* vertexPath,char* fragmentPath);
         void use();
         void setBool(const std::string &name,bool value) const;
         void setInt(const std::string &name,int value) const;
@@ -134,7 +134,7 @@ namespace RenderInterface{
     };
     class Scene{
     public:
-        Scene(char* scenePath,unsigned int type,BumpAllocator* persistantStorage,BumpAllocator* transientStorage);
+        Scene(char* scenePath,unsigned int type);
         Node** nodes;
         const unsigned int getNodeCount();
         void Draw(Shader &shader);

@@ -138,11 +138,11 @@ void gl_render(){
 // ############################################################################
 //                            OpenGL Init Functions
 // ############################################################################
-void gl_shaders_init(BumpAllocator* persistentStorage){
-    testShader=new RenderInterface::Shader("assets/shaders/test.vert","assets/shaders/test.frag",persistentStorage);
-    frameQuadShader=new RenderInterface::Shader("assets/shaders/frameQuadShader.vert","assets/shaders/frameQuadShader.frag",persistentStorage);
-    diffuseShader=new RenderInterface::Shader("assets/shaders/diffuseShader.vert","assets/shaders/diffuseShader.frag",persistentStorage);
-    dirShadowShader=new RenderInterface::Shader("assets/shaders/dirShadowShader.vert","assets/shaders/dirShadowShader.frag",persistentStorage);
+void gl_shaders_init(){
+    testShader=new RenderInterface::Shader("assets/shaders/test.vert","assets/shaders/test.frag");
+    frameQuadShader=new RenderInterface::Shader("assets/shaders/frameQuadShader.vert","assets/shaders/frameQuadShader.frag");
+    diffuseShader=new RenderInterface::Shader("assets/shaders/diffuseShader.vert","assets/shaders/diffuseShader.frag");
+    dirShadowShader=new RenderInterface::Shader("assets/shaders/dirShadowShader.vert","assets/shaders/dirShadowShader.frag");
 }
 void gl_textures_init(){
     faridTexture=new RenderInterface::Texture("assets/textures/farid.png",GL_RGBA);
@@ -151,7 +151,7 @@ void gl_textures_init(){
     building2Texture=new RenderInterface::Texture("assets/textures/building2.png",GL_RGB);
     building3Texture=new RenderInterface::Texture("assets/textures/farid.png",GL_RGBA);
 }
-bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
+bool gl_init(){
     load_gl_functions();
     glDebugMessageCallback(&gl_debug_callback,nullptr);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -161,7 +161,7 @@ bool gl_init(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
     glCullFace(GL_BACK);
 
     //Init Shaders and Materials
-    gl_shaders_init(persistentStorage);
+    gl_shaders_init();
     gl_materials_init();
     //Load textures
     gl_textures_init();

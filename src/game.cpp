@@ -38,9 +38,9 @@ static float movAngles[8]{
 // ############################################################################
 //                            Game Functions
 // ############################################################################
-void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage){
+void init_game(){
     reset_key_bindings(input);
-    Zones::init_zones(persistentStorage);
+    Zones::init_zones();
 
     gameData->is_running=true;
     gameData->is_paused=false;
@@ -240,7 +240,7 @@ void init_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage)
         }
     }
 }
-void update_game(BumpAllocator* transientStorage,BumpAllocator* persistentStorage,float dt){
+void update_game(float dt){
     //Exit
     if(key_pressed_this_frame(input->keyBindings[EXIT_KEY]))gameData->is_running=false;
     //Pause

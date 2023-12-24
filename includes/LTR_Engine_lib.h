@@ -115,6 +115,8 @@ struct BumpAllocator{
     size_t used;
     char* memory;
 };
+static BumpAllocator persistentStorage;
+static BumpAllocator transientStorage;
 BumpAllocator make_bump_allocator(size_t size){
     BumpAllocator ba={};
     ba.memory=(char*)malloc(size);
@@ -461,7 +463,7 @@ void read_name(std::vector<char> &buffer,int &i,char* result){
     strncpy(result,&buffer[i],j-i);
 }
 
-void read_glb_file(char* filePath,std::vector<char>* &buffer,BumpAllocator* persistentStorage){
+void read_glb_file(char* filePath,std::vector<char>* &buffer){
     SM_TRACE("Loading glb scene...");
     std::ifstream input(filePath,std::ios::binary);
     buffer=new std::vector<char>(std::istreambuf_iterator<char>(input),{});
@@ -470,7 +472,7 @@ void read_glb_file(char* filePath,std::vector<char>* &buffer,BumpAllocator* pers
     SM_TRACE((char*)std::to_string(fileSize).c_str());
 }
 
-void get_glb_structure(BumpAllocator* bumpAllocator,
+void get_glb_structure(
             std::vector<char> &buffer,                  int &binStart,
             Buffer* &buffers,                           int &buffersCount,
             BufferView* &bufferViews,                   int &bufferViewsCount,
@@ -705,11 +707,11 @@ void get_glb_structure(BumpAllocator* bumpAllocator,
             }
         }
     }
-    buffers=(Buffer*)bump_alloc(bumpAllocator,sizeof(Buffer)*buffersCount);
-    bufferViews=(BufferView*)bump_alloc(bumpAllocator,sizeof(BufferView)*bufferViewsCount);
-    accessors=(Accessor*)bump_alloc(bumpAllocator,sizeof(Accessor)*accessorCount);
-    meshConstructors=(MeshConstructor*)bump_alloc(bumpAllocator,sizeof(MeshConstructor)*meshConstructorCount);
-    nodeConstructors=(NodeConstructor*)bump_alloc(bumpAllocator,sizeof(NodeConstructor)*nodeConstructorCount);
+    buffers=(Buffer*)bump_alloc(&transientStorage,sizeof(Buffer)*buffersCount);
+    bufferViews=(BufferView*)bump_alloc(&transientStorage,sizeof(BufferView)*bufferViewsCount);
+    accessors=(Accessor*)bump_alloc(&transientStorage,sizeof(Accessor)*accessorCount);
+    meshConstructors=(MeshConstructor*)bump_alloc(&transientStorage,sizeof(MeshConstructor)*meshConstructorCount);
+    nodeConstructors=(NodeConstructor*)bump_alloc(&transientStorage,sizeof(NodeConstructor)*nodeConstructorCount);
     int posId;
     SM_TRACE("Reading buffer structure...");
     //Get buffer data structure

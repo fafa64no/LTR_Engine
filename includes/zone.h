@@ -28,7 +28,7 @@ namespace Zones{
     };
     class Region{
     public:
-        Region(RegionMesh* meshes,int meshCount,BumpAllocator* bumpAllocator);
+        Region(RegionMesh* meshes,int meshCount);
         void AddDraw();
     private:
         int *terrainNodes{nullptr},*propsNodes{nullptr},terrainNodeCount{0},propsNodeCount{0};
@@ -74,9 +74,9 @@ namespace Zones{
     // ############################################################################
     //                            Region Functions
     // ############################################################################
-    Region::Region(RegionMesh* meshes,int meshCount,BumpAllocator* bumpAllocator){
+    Region::Region(RegionMesh* meshes,int meshCount){
         this->terrainNodeCount=meshCount;
-        this->terrainNodes=(int*)bump_alloc(bumpAllocator,meshCount*sizeof(int));
+        this->terrainNodes=(int*)bump_alloc(&persistentStorage,meshCount*sizeof(int));
         this->SetupTerrain(meshes,meshCount);
         this->SetupProps();
     }
@@ -103,7 +103,7 @@ namespace Zones{
     // ############################################################################
     //                            Zone Functions
     // ############################################################################
-    void init_zones(BumpAllocator* persistentStorage){
+    void init_zones(){
         //Biomes
         SM_TRACE("Biome setup");
         testBiome=new Biome(
@@ -145,8 +145,7 @@ namespace Zones{
         }
         testRegion=new Region(
             meshes,
-            0,//nmeshes,
-            persistentStorage
+            0//nmeshes
         );
     }
 }

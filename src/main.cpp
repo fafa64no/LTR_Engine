@@ -39,8 +39,8 @@ int main(){
 
     //Memory allocation
     SM_TRACE("Allocating memory");
-    BumpAllocator transientStorage=make_bump_allocator(MB(200));
-    BumpAllocator persistentStorage=make_bump_allocator(MB(500));
+    transientStorage=make_bump_allocator(MB(200));
+    persistentStorage=make_bump_allocator(MB(500));
 
     input=(Input*)bump_alloc(&persistentStorage,sizeof(Input));
     SM_ASSERT(input,"Failed to allocate input");
@@ -58,12 +58,12 @@ int main(){
 
     //Libs
     SM_TRACE("Initialising OpenGL");
-    gl_init(&transientStorage,&persistentStorage);
+    SM_ASSERT(gl_init(),"Failed to init OpenGL");
     platform_swap_buffers();
-    SM_ASSERT(Scenes::SetupScenes(&transientStorage,&persistentStorage),"Failed to load scenes");
+    SM_ASSERT(Scenes::SetupScenes(),"Failed to load scenes");
 
     //Game initialisation
-    init_game(&transientStorage,&persistentStorage);
+    init_game();
 
     //Game loop
     SM_TRACE("Updating game");
@@ -71,7 +71,7 @@ int main(){
         float dt=get_delta_time();
         //Update
         platform_update_window();
-        update_game(&transientStorage,&persistentStorage,dt);
+        update_game(dt);
         gl_render();
         platform_swap_buffers();
         transientStorage.used=0;
