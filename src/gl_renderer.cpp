@@ -8,22 +8,6 @@
 #include "scenes.h"
 
 // ############################################################################
-//                            OpenGL Constants
-// ############################################################################
-#include "test_models.h"
-float frameQuadVertices[]={  
-    //positions    //texCoords
-    -1.0f,  1.0f,  0.0f, 1.0f,
-    -1.0f, -1.0f,  0.0f, 0.0f,
-     1.0f, -1.0f,  1.0f, 0.0f,
-
-    -1.0f,  1.0f,  0.0f, 1.0f,
-     1.0f, -1.0f,  1.0f, 0.0f,
-     1.0f,  1.0f,  1.0f, 1.0f
-};
-const unsigned int DIR_SHADOW_WIDTH=4096,DIR_SHADOW_HEIGHT=4096;
-
-// ############################################################################
 //                            OpenGL Structs
 // ############################################################################
 struct GLContext{
@@ -64,7 +48,7 @@ static void APIENTRY gl_debug_callback(
     }
 }
 void gl_clear(){
-    glClearColor(0.6f,0.1f,0.5f,1);
+    glClearColor(0.3f,0.3f,0.3f,1);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 }
 
@@ -72,27 +56,18 @@ void gl_clear(){
 //                            OpenGL Render Functions
 // ############################################################################
 void gl_render_2D_layer(){
-    //menuShader->use();
+    using namespace RenderInterface;
+    for(int i=0;i<renderData->node2DCount;i++)renderData->nodes_2d_to_render[i]->Draw();
 }
 // ############################################################################
 void gl_render_3D_layer(){
-    glActiveTexture(GL_TEXTURE0);
-    faridTexture->use();
-
-    testShader->use();
-    testShader->setInt("textureUsed1",0);
-    testShader->setInt("textureUsed2",1);
-
-    testShader->setVec3("ambientLight",gameData->currentBiome->ambientLight);
-    testShader->setVec3("lightPos",glm::vec3(1.0,1.0,1.0));
-    testShader->setVec3("diffuseLightColor",glm::vec3(1.0,1.0,1.0));
-    testShader->setFloat("diffuseLightStrength",1.3f);
-    testShader->setFloat("diffuseLightRange",15.0f);
-
-    testShader->setVec3("material.ambient",metal.ambient);
-    testShader->setVec3("material.diffuse",metal.diffuse);
-    testShader->setVec3("material.specular",metal.specular);
-    testShader->setInt("material.shininess",metal.shininess);
+    using namespace RenderInterface;
+    renderData->currentCamera->updateRatio(input->screenRatio);
+    renderData->currentCamera->updateViewMat();
+    renderData->currentCamera->updateProjMat();
+    renderData->viewMat=renderData->currentCamera->viewMat();
+    renderData->projMat=renderData->currentCamera->projMat();
+    for(int i=0;i<renderData->nodeCount;i++)renderData->nodes_to_render[i]->Draw(renderData);
 }
 // ############################################################################
 void gl_render(){
@@ -114,13 +89,7 @@ void gl_render(){
     gl_clear();
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D,dirLightDepthMap);
-    renderData->currentCamera->updateRatio(input->screenRatio);
-    renderData->currentCamera->updateViewMat();
-    renderData->currentCamera->updateProjMat();
-    renderData->viewMat=renderData->currentCamera->viewMat();
-    renderData->projMat=renderData->currentCamera->projMat();
     gl_render_3D_layer();
-    for(int i=0;i<renderData->nodeCount;i++)renderData->nodes_to_render[i]->Draw(renderData);
     glBindFramebuffer(GL_FRAMEBUFFER,0);
     //Post processing
     glViewport(0,0,width,height);
@@ -128,7 +97,6 @@ void gl_render(){
     frameQuadShader->use();
     frameQuadShader->setVec2("screenRatio",glm::vec2((float)pixWidth/input->maxScreenSize.x,(float)pixHeight/input->maxScreenSize.y));
     glBindVertexArray(frameVAO);
-    glDisable(GL_DEPTH_TEST);
     glBindTexture(GL_TEXTURE_2D,frameTexture);
     glDrawArrays(GL_TRIANGLES,0,6);
     //Render UI
@@ -139,17 +107,20 @@ void gl_render(){
 //                            OpenGL Init Functions
 // ############################################################################
 void gl_shaders_init(){
-    testShader=new RenderInterface::Shader("assets/shaders/test.vert","assets/shaders/test.frag");
-    frameQuadShader=new RenderInterface::Shader("assets/shaders/frameQuadShader.vert","assets/shaders/frameQuadShader.frag");
-    diffuseShader=new RenderInterface::Shader("assets/shaders/diffuseShader.vert","assets/shaders/diffuseShader.frag");
-    dirShadowShader=new RenderInterface::Shader("assets/shaders/dirShadowShader.vert","assets/shaders/dirShadowShader.frag");
+    using namespace RenderInterface;
+    testShader=new Shader("assets/shaders/test.vert","assets/shaders/test.frag");
+    frameQuadShader=new Shader("assets/shaders/frameQuadShader.vert","assets/shaders/frameQuadShader.frag");
+    diffuseShader=new Shader("assets/shaders/diffuseShader.vert","assets/shaders/diffuseShader.frag");
+    dirShadowShader=new Shader("assets/shaders/dirShadowShader.vert","assets/shaders/dirShadowShader.frag");
+    menuShader=new Shader("assets/shaders/menuShader.vert","assets/shaders/menuShader.frag");
 }
 void gl_textures_init(){
-    faridTexture=new RenderInterface::Texture("assets/textures/farid.png",GL_RGBA);
-    groundTexture=new RenderInterface::Texture("assets/textures/ground.png",GL_RGB);
-    building1Texture=new RenderInterface::Texture("assets/textures/building1.png",GL_RGB);
-    building2Texture=new RenderInterface::Texture("assets/textures/building2.png",GL_RGB);
-    building3Texture=new RenderInterface::Texture("assets/textures/farid.png",GL_RGBA);
+    using namespace RenderInterface;
+    faridTexture=new Texture("assets/textures/farid.png",GL_RGBA);
+    groundTexture=new Texture("assets/textures/ground.png",GL_RGB);
+    building1Texture=new Texture("assets/textures/building1.png",GL_RGB);
+    building2Texture=new Texture("assets/textures/building2.png",GL_RGB);
+    building3Texture=new Texture("assets/textures/farid.png",GL_RGBA);
 }
 bool gl_init(){
     load_gl_functions();
@@ -186,12 +157,13 @@ bool gl_init(){
     glGenBuffers(1,&frameVBO);
     glBindVertexArray(frameVAO);
     glBindBuffer(GL_ARRAY_BUFFER,frameVBO);
-    glBufferData(GL_ARRAY_BUFFER,sizeof(frameQuadVertices),&frameQuadVertices,GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(quadVertices),&quadVertices,GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(2*sizeof(float)));
     glBindVertexArray(0);
+    quadVAO=frameVAO;
 
     SM_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE,"Scene framebuffer incomplete");
     glBindFramebuffer(GL_FRAMEBUFFER,0);

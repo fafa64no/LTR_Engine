@@ -254,7 +254,7 @@ void platform_update_window(){
         POINT point={};
         GetCursorPos(&point);
         ScreenToClient(window,&point);
-        if (!gameData->can_move_mouse){
+        if (!gameData->can_move_mouse&&gameData->freeCam){
             //Hide cursor
             while(ShowCursor(false)>=0);
 

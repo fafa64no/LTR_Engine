@@ -96,12 +96,29 @@ namespace RenderInterface{
     }
 
     // ############################################################################
-    //                            Atlas Functions
+    //                            Node2D
     // ############################################################################
-    Atlas::Atlas(char* atlasPath,glm::ivec2 textureSize,glm::ivec2 atlasSize,BumpAllocator* bumpAllocator,unsigned int internalFormat){
-        this->atlasSize=atlasSize;
-        this->textureSize=textureSize;
-        this->atlasTextures=new Texture(atlasPath,internalFormat);
+    Node2D::Node2D(glm::vec2 position,glm::vec4 rotation,glm::vec2 scale,float depth,Texture* texture,Shader* shader){
+        this->position=position;
+        this->rotation=rotation;
+        this->scale=scale;
+        this->depth=depth;
+        this->texture=texture;
+        this->shader=shader;
+    }
+    void Node2D::Draw(){
+        this->shader->use();
+        glm::mat4 modelMat=glm::mat4(1.0f);
+        modelMat=glm::scale(modelMat,glm::vec3(input->screenRatio,1,1));
+        modelMat=glm::translate(modelMat,glm::vec3(this->position,this->depth));
+        glm::mat4 temp;
+        quatToMat(temp,this->rotation);
+        modelMat*=temp;
+        modelMat=glm::scale(modelMat,glm::vec3(this->scale,1));
+        this->shader->setMat4("model",modelMat);
+        glBindVertexArray(quadVAO);
+        this->texture->use();
+        glDrawArrays(GL_TRIANGLES,0,6);
     }
 
     // ############################################################################

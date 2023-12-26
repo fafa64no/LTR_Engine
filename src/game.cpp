@@ -239,6 +239,53 @@ void init_game(){
             int hdjyufgsdfsdfhfgkto=addNodeToRender(nodeContainer->nodes[col7]);
         }
     }
+
+    {
+        //Testing 2D
+        using namespace RenderInterface;
+        using namespace Scenes;
+        //Faricards
+        int fariCard=storeNode(new Node2D(
+            glm::vec2(-0.1f,-0.95f),
+            vecToQuat(glm::vec4(0,0,1,0.26179938779f)),
+            glm::vec2(0.15f,0.25f),
+            -0.2f,
+            faridTexture,
+            menuShader
+        ));int farCardRender=addNodeToRender(node2DContainer->nodes[fariCard]);
+        int fariCard2=storeNode(new Node2D(
+            glm::vec2(0.0f,-0.935f),
+            glm::vec4(0.0f,0.0f,0.0f,0.0f),
+            glm::vec2(0.15f,0.25f),
+            -0.3f,
+            faridTexture,
+            menuShader
+        ));int farCardRender2=addNodeToRender(node2DContainer->nodes[fariCard2]);
+        int fariCard3=storeNode(new Node2D(
+            glm::vec2(0.1f,-0.95f),
+            vecToQuat(glm::vec4(0,0,1,-0.26179938779f)),
+            glm::vec2(0.15f,0.25f),
+            -0.4f,
+            faridTexture,
+            menuShader
+        ));int farCardRender3=addNodeToRender(node2DContainer->nodes[fariCard3]);
+        int fariCard4=storeNode(new Node2D(
+            glm::vec2(-0.2f,-0.97f),
+            vecToQuat(glm::vec4(0,0,1,0.39269908169f)),
+            glm::vec2(0.15f,0.25f),
+            -0.1f,
+            faridTexture,
+            menuShader
+        ));int farCardRender4=addNodeToRender(node2DContainer->nodes[fariCard4]);
+        int fariCard5=storeNode(new Node2D(
+            glm::vec2(0.2f,-0.97f),
+            vecToQuat(glm::vec4(0,0,1,-0.39269908169f)),
+            glm::vec2(0.15f,0.25f),
+            -0.5f,
+            faridTexture,
+            menuShader
+        ));int farCardRender5=addNodeToRender(node2DContainer->nodes[fariCard5]);
+    }
 }
 void update_game(float dt){
     //Exit
@@ -310,7 +357,7 @@ void update_game(float dt){
         }
         if(key_pressed_this_frame(input->keyBindings[PIXELATION_KEY])){
             if(RenderInterface::renderData->pixelation==1){
-                RenderInterface::renderData->pixelation=4;
+                RenderInterface::renderData->pixelation=2;
             }else{
                 RenderInterface::renderData->pixelation=1;
             }

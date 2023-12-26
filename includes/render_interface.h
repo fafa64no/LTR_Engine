@@ -84,16 +84,23 @@ namespace RenderInterface{
     // ############################################################################
     class Node2D{
     public:
-        Node2D();
-    };
-    class Atlas{
-    public:
-        Atlas(char* atlasPath,glm::ivec2 textureSize,glm::ivec2 atlasSize,BumpAllocator* bumpAllocator,unsigned int internalFormat);
-        void Draw(unsigned int textureId);
+        Node2D(glm::vec2 position,glm::vec4 rotation,glm::vec2 scale,float depth,Texture* texture,Shader* shader);
+        void Draw();
+        Texture* texture;
+        Shader* shader;
     private:
-        glm::ivec2 atlasSize,textureSize;
-        Texture* atlasTextures;
+        glm::vec2 position,scale;
+        glm::vec4 rotation;
+        float depth;
     };
+    //class Atlas{
+    //public:
+    //    Atlas(char* atlasPath,glm::ivec2 textureSize,glm::ivec2 atlasSize,BumpAllocator* bumpAllocator,unsigned int internalFormat);
+    //    void Draw(unsigned int textureId);
+    //private:
+    //    glm::ivec2 atlasSize,textureSize;
+    //    Texture* atlasTextures;
+    //};
     
     // ############################################################################
     //                            3D Stuff
@@ -191,11 +198,16 @@ namespace RenderInterface{
         Camera* currentCamera;
         glm::mat4 viewMat,projMat;
         Node* nodes_to_render[MAX_NODES_TO_RENDER];
-        unsigned int nodeCount=0;
+        Node2D* nodes_2d_to_render[MAX_2DNODES_TO_RENDER];
+        unsigned int nodeCount{0},node2DCount{0};
         unsigned short pixelation;
     };
     struct NodeContainer{
         Node* nodes[MAX_NODES];
+        unsigned int nodeCount=0;
+    };
+    struct Node2DContainer{
+        Node2D* nodes[MAX_2DNODES];
         unsigned int nodeCount=0;
     };
 
@@ -204,6 +216,7 @@ namespace RenderInterface{
     // ############################################################################
     static RenderData* renderData;
     static NodeContainer* nodeContainer;
+    static Node2DContainer* node2DContainer;
 
     static Camera* freeCam;
     static Camera* playerCam;
@@ -216,9 +229,19 @@ namespace RenderInterface{
         renderData->nodes_to_render[renderData->nodeCount]=node;
         return renderData->nodeCount++;
     }
+    int addNodeToRender(Node2D* node){
+        if(renderData->node2DCount==MAX_2DNODES_TO_RENDER)return -1;
+        renderData->nodes_2d_to_render[renderData->node2DCount]=node;
+        return renderData->node2DCount++;
+    }
     int storeNode(Node* node){
         if(nodeContainer->nodeCount==MAX_NODES)return -1;
         nodeContainer->nodes[nodeContainer->nodeCount]=node;
         return nodeContainer->nodeCount++;
+    }
+    int storeNode(Node2D* node){
+        if(node2DContainer->nodeCount==MAX_2DNODES)return -1;
+        node2DContainer->nodes[node2DContainer->nodeCount]=node;
+        return node2DContainer->nodeCount++;
     }
 };

@@ -6,11 +6,34 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "platform.h"
 
+// ############################################################################
+//                            OpenGL Constants
+// ############################################################################
+const float quadVertices[]{  
+    //positions    //texCoords
+    -1.0f,  1.0f,  0.0f, 1.0f,
+    -1.0f, -1.0f,  0.0f, 0.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+
+    -1.0f,  1.0f,  0.0f, 1.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+     1.0f,  1.0f,  1.0f, 1.0f
+};
+const unsigned int DIR_SHADOW_WIDTH=4096,DIR_SHADOW_HEIGHT=4096;
+static unsigned int quadVAO;
+
+// ############################################################################
+//                            Shaders
+// ############################################################################
 static RenderInterface::Shader* testShader;
 static RenderInterface::Shader* frameQuadShader;
 static RenderInterface::Shader* diffuseShader;
 static RenderInterface::Shader* dirShadowShader;
+static RenderInterface::Shader* menuShader;
 
+// ############################################################################
+//                            Textures
+// ############################################################################
 static RenderInterface::Texture* faridTexture;
 static RenderInterface::Texture* groundTexture;
 static RenderInterface::Texture* building1Texture;

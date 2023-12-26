@@ -81,23 +81,32 @@ enum Controls{
     BACKWARD_KEY,
     UP_KEY,
     DOWN_KEY,
+
     PAUSE_KEY,
+
     EXIT_KEY,
     FULLBRIGHT_KEY,
     PIXELATION_KEY,
     FREECAM_KEY,
     DEBUG_KEY,
+
     ZOOMIN_KEY,
     ZOOMOUT_KEY,
     LOOKUP_KEY,
     LOOKDOWN_KEY,
     LOOKLEFT_KEY,
     LOOKRIGHT_KEY,
+
     SPRINT_KEY,
-    TEST_FORWARD_KEY,
-    TEST_BACKWARD_KEY,
-    TEST_LEFT_KEY,
-    TEST_RIGHT_KEY,
+    DASH_KEY,
+
+    CARD1_SHORTCUT_KEY,
+    CARD2_SHORTCUT_KEY,
+    CARD3_SHORTCUT_KEY,
+    CARD4_SHORTCUT_KEY,
+    CARD5_SHORTCUT_KEY,
+    CARD6_SHORTCUT_KEY,
+
     CONTROLS_COUNT,
 };
 struct Key{
@@ -153,23 +162,29 @@ void reset_key_bindings(Input* input){
     input->keyBindings[BACKWARD_KEY]=KEY_S;
     input->keyBindings[UP_KEY]=KEY_SPACE;
     input->keyBindings[DOWN_KEY]=KEY_SHIFT;
+
     input->keyBindings[PAUSE_KEY]=KEY_ESCAPE;
-    input->keyBindings[EXIT_KEY]=KEY_E;
+
+    input->keyBindings[EXIT_KEY]=KEY_T;
     input->keyBindings[FULLBRIGHT_KEY]=KEY_C;
     input->keyBindings[PIXELATION_KEY]=KEY_P;
-    input->keyBindings[DEBUG_KEY]=KEY_R;
+    input->keyBindings[DEBUG_KEY]=KEY_O;
     input->keyBindings[FREECAM_KEY]=KEY_F;
-    //input->keyBindings[ZOOMIN_KEY]=KEY_NUMPAD_PLUS;
-    //input->keyBindings[ZOOMOUT_KEY]=KEY_NUMPAD_MINUS;
+
     input->keyBindings[ZOOMIN_KEY]=KEY_U;
     input->keyBindings[ZOOMOUT_KEY]=KEY_I;
     input->keyBindings[LOOKUP_KEY]=KEY_UP;
     input->keyBindings[LOOKDOWN_KEY]=KEY_DOWN;
     input->keyBindings[LOOKLEFT_KEY]=KEY_LEFT;
     input->keyBindings[LOOKRIGHT_KEY]=KEY_RIGHT;
+
     input->keyBindings[SPRINT_KEY]=KEY_CONTROL;
-    input->keyBindings[TEST_FORWARD_KEY]=KEY_O;
-    input->keyBindings[TEST_BACKWARD_KEY]=KEY_L;
-    input->keyBindings[TEST_LEFT_KEY]=KEY_K;
-    input->keyBindings[TEST_RIGHT_KEY]=KEY_M;
+    input->keyBindings[DASH_KEY]=KEY_A;
+
+    input->keyBindings[CARD1_SHORTCUT_KEY]=KEY_TAB;
+    input->keyBindings[CARD2_SHORTCUT_KEY]=KEY_1;
+    input->keyBindings[CARD3_SHORTCUT_KEY]=KEY_2;
+    input->keyBindings[CARD4_SHORTCUT_KEY]=KEY_3;
+    input->keyBindings[CARD5_SHORTCUT_KEY]=KEY_4;
+    input->keyBindings[CARD6_SHORTCUT_KEY]=KEY_R;
 }

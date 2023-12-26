@@ -48,6 +48,8 @@ int main(){
     SM_ASSERT(RenderInterface::renderData,"Failed to allocate renderData");
     RenderInterface::nodeContainer=(RenderInterface::NodeContainer*)bump_alloc(&persistentStorage,sizeof(RenderInterface::NodeContainer));
     SM_ASSERT(RenderInterface::nodeContainer,"Failed to allocate nodeContainer");
+    RenderInterface::node2DContainer=(RenderInterface::Node2DContainer*)bump_alloc(&persistentStorage,sizeof(RenderInterface::Node2DContainer));
+    SM_ASSERT(RenderInterface::node2DContainer,"Failed to allocate node2DContainer");
     gameData=(GameData*)bump_alloc(&persistentStorage,sizeof(GameData));
     SM_ASSERT(gameData,"Failed to allocate renderData");
 
