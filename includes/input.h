@@ -169,14 +169,14 @@ void reset_key_bindings(Input* input){
     input->keyBindings[FULLBRIGHT_KEY]=KEY_C;
     input->keyBindings[PIXELATION_KEY]=KEY_P;
     input->keyBindings[DEBUG_KEY]=KEY_O;
-    input->keyBindings[FREECAM_KEY]=KEY_F;
+    input->keyBindings[FREECAM_KEY]=KEY_G;
 
     input->keyBindings[ZOOMIN_KEY]=KEY_U;
     input->keyBindings[ZOOMOUT_KEY]=KEY_I;
     input->keyBindings[LOOKUP_KEY]=KEY_UP;
     input->keyBindings[LOOKDOWN_KEY]=KEY_DOWN;
-    input->keyBindings[LOOKLEFT_KEY]=KEY_LEFT;
-    input->keyBindings[LOOKRIGHT_KEY]=KEY_RIGHT;
+    input->keyBindings[LOOKLEFT_KEY]=KEY_SHIFT;
+    input->keyBindings[LOOKRIGHT_KEY]=KEY_F;
 
     input->keyBindings[SPRINT_KEY]=KEY_CONTROL;
     input->keyBindings[DASH_KEY]=KEY_A;

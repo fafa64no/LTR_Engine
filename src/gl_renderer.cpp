@@ -58,6 +58,7 @@ void gl_clear(){
 void gl_render_2D_layer(){
     using namespace RenderInterface;
     for(int i=0;i<renderData->node2DCount;i++)renderData->nodes_2d_to_render[i]->Draw();
+    testFont->RenderText("Farid is very grumpy bro",-0.8f,0.0f,5.0f,glm::vec3(0.5f, 0.8f, 0.2f));
 }
 // ############################################################################
 void gl_render_3D_layer(){
@@ -108,11 +109,14 @@ void gl_render(){
 // ############################################################################
 void gl_shaders_init(){
     using namespace RenderInterface;
-    testShader=new Shader("assets/shaders/test.vert","assets/shaders/test.frag");
-    frameQuadShader=new Shader("assets/shaders/frameQuadShader.vert","assets/shaders/frameQuadShader.frag");
-    diffuseShader=new Shader("assets/shaders/diffuseShader.vert","assets/shaders/diffuseShader.frag");
-    dirShadowShader=new Shader("assets/shaders/dirShadowShader.vert","assets/shaders/dirShadowShader.frag");
-    menuShader=new Shader("assets/shaders/menuShader.vert","assets/shaders/menuShader.frag");
+    frameQuadShader=new Shader("assets/shaders/postprocessing/frameQuadShader.vert","assets/shaders/postprocessing/frameQuadShader.frag");
+
+    dirShadowShader=new Shader("assets/shaders/shadows/dirShadowShader.vert","assets/shaders/shadows/dirShadowShader.frag");
+
+    diffuseShader=new Shader("assets/shaders/render3d/diffuseShader.vert","assets/shaders/render3d/diffuseShader.frag");
+
+    menuShader=new Shader("assets/shaders/render2d/menuShader.vert","assets/shaders/render2d/menuShader.frag");
+    textShader=new Shader("assets/shaders/render2d/textShader.vert","assets/shaders/render2d/textShader.frag");
 }
 void gl_textures_init(){
     using namespace RenderInterface;
@@ -130,6 +134,8 @@ bool gl_init(){
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
     //Init Shaders and Materials
     gl_shaders_init();
@@ -186,6 +192,22 @@ bool gl_init(){
 
     SM_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE,"Depthmap framebuffer incomplete");
     glBindFramebuffer(GL_FRAMEBUFFER,0);
+
+    glGenVertexArrays(1,&textVAO);
+    glGenBuffers(1,&textVBO);
+    glBindVertexArray(textVAO);
+    glBindBuffer(GL_ARRAY_BUFFER,textVBO);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(float)*24,&thingVertices,GL_DYNAMIC_DRAW);
+    //glEnableVertexAttribArray(0);
+    //glVertexAttribPointer(0,4,GL_FLOAT,GL_FALSE,4*sizeof(float),0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(2*sizeof(float)));
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+    glBindVertexArray(0);
+
+    testFont=new TextRender::FontStorage("assets/fonts/calibrib.ttf",48);
 
     RenderInterface::renderData->pixelation=1;
     return true;

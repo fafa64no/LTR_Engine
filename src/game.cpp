@@ -59,7 +59,7 @@ void init_game(){
     RenderInterface::playerCam=new RenderInterface::Camera(
         glm::vec3(0.0f,0.0f,0.0f),
         glm::vec3(0.0f,1.0f,0.0f),
-        glm::vec3(10.0f,7.0f,10.0f),
+        glm::vec3(10.0f,12.0f,10.0f),
         -100.0f,
         100.0f,
         15.0f

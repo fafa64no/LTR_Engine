@@ -5,31 +5,45 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "platform.h"
+#include "text_renderer.h"
 
 // ############################################################################
 //                            OpenGL Constants
 // ############################################################################
-const float quadVertices[]{  
+const float quadVertices[24]{  
     //positions    //texCoords
     -1.0f,  1.0f,  0.0f, 1.0f,
     -1.0f, -1.0f,  0.0f, 0.0f,
      1.0f, -1.0f,  1.0f, 0.0f,
-
+    -1.0f,  1.0f,  0.0f, 1.0f,
+     1.0f, -1.0f,  1.0f, 0.0f,
+     1.0f,  1.0f,  1.0f, 1.0f
+};
+const float thingVertices[24]{  
+    //positions    //texCoords
+    -0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  1.0f, 0.0f,
     -1.0f,  1.0f,  0.0f, 1.0f,
      1.0f, -1.0f,  1.0f, 0.0f,
      1.0f,  1.0f,  1.0f, 1.0f
 };
 const unsigned int DIR_SHADOW_WIDTH=4096,DIR_SHADOW_HEIGHT=4096;
-static unsigned int quadVAO;
+static unsigned int quadVAO,textVAO,textVBO;
 
 // ############################################################################
 //                            Shaders
 // ############################################################################
 static RenderInterface::Shader* testShader;
+
 static RenderInterface::Shader* frameQuadShader;
-static RenderInterface::Shader* diffuseShader;
+
 static RenderInterface::Shader* dirShadowShader;
+
+static RenderInterface::Shader* diffuseShader;
+
 static RenderInterface::Shader* menuShader;
+static RenderInterface::Shader* textShader;
 
 // ############################################################################
 //                            Textures
@@ -39,6 +53,10 @@ static RenderInterface::Texture* groundTexture;
 static RenderInterface::Texture* building1Texture;
 static RenderInterface::Texture* building2Texture;
 static RenderInterface::Texture* building3Texture;
+// ############################################################################
+//                            Fonts
+// ############################################################################
+static TextRender::FontStorage* testFont;
 // #############################################################################
 //                           OpenGL Function Pointers
 // #############################################################################
@@ -103,6 +121,7 @@ static PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced_ptr;
 static PFNGLGENERATEMIPMAPPROC glGenerateMipmap_ptr;
 static PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback_ptr;
 static PFNGLREADBUFFERPROC glReadBuffer_ptr;
+static PFNGLPIXELSTOREIPROC glPixelStorei_ptr;
 
 
 void load_gl_functions()
@@ -168,6 +187,7 @@ void load_gl_functions()
   glGenerateMipmap_ptr = (PFNGLGENERATEMIPMAPPROC) platform_load_gl_function("glGenerateMipmap");
   glDebugMessageCallback_ptr = (PFNGLDEBUGMESSAGECALLBACKPROC)platform_load_gl_function("glDebugMessageCallback");
   glReadBuffer_ptr = (PFNGLREADBUFFERPROC)platform_load_gl_function("glReadBuffer");
+  glPixelStorei_ptr = (PFNGLPIXELSTOREIPROC)platform_load_gl_function("glPixelStorei");
 }
 
 // #############################################################################
@@ -472,5 +492,8 @@ void glReadBuffer (GLenum mode)
 {
   glReadBuffer_ptr(mode);
 }
- 
+
+void glPixelStorei (GLenum pname, GLint param){
+    glPixelStorei_ptr(pname, param);
+}
 

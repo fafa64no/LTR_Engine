@@ -19,12 +19,9 @@
 #include <chrono>
 double get_delta_time();
 #include "input.h"
-#include "game.h"
-#include "zone.h"
-#include "render_interface.h"
 
 #include "gl_renderer.cpp"
-#include "scenes.h"
+#include "text_renderer.cpp"
 #include "render_interface.cpp"
 #include "characters.cpp"
 #include "game.cpp"
