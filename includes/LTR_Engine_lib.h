@@ -953,7 +953,7 @@ void sort_glb_file(std::vector<char> &buffer){
             default:{
                 break;
             }
-        }
+        } //note pour plus tard :Léo est un maxi BG
     }
     headerFile<<std::endl;
     contentFile<<std::endl;

@@ -77,12 +77,12 @@ namespace TextRender{
             float w=(float)ch.size.x*scalx;
             float h=(float)ch.size.y*scaly;
             float vertices[24]{
-                xpos    ,ypos   ,0.0f,0.0f,            
+                xpos    ,ypos   ,0.0f,0.0f,
                 xpos    ,ypos-h ,0.0f,1.0f,
                 xpos+w  ,ypos-h ,1.0f,1.0f,
                 xpos    ,ypos   ,0.0f,0.0f,
                 xpos+w  ,ypos-h ,1.0f,1.0f,
-                xpos+w  ,ypos   ,1.0f,0.0f           
+                xpos+w  ,ypos   ,1.0f,0.0f
             };
             glBindTexture(GL_TEXTURE_2D,ch.textureId);
             glBindBuffer(GL_ARRAY_BUFFER,textVBO);
