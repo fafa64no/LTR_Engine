@@ -89,10 +89,33 @@ namespace RenderInterface{
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-        /// TODO OOOOOO
     }
     void Texture::use(){
         glBindTexture(GL_TEXTURE_2D,textureID);
+    }
+
+    // ############################################################################
+    //                            Texture Functions
+    // ############################################################################
+    CubeMap::CubeMap(char** texturePath,unsigned int internalFormat){
+        glGenTextures(1, &this->cubeMapID);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, this->cubeMapID);
+        unsigned char *data;  
+        for(unsigned int i = 0; i < 6; i++){
+            data = stbi_load(texturePath[i], &this->width[i], &this->height[i], &this->nrChannels[i], 0);
+            glTexImage2D(
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
+                0, GL_RGB, this->width[i], this->height[i], 0, GL_RGB, GL_UNSIGNED_BYTE, data
+            );
+        }
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    }
+    void CubeMap::use(){
+        glBindTexture(GL_TEXTURE_CUBE_MAP,this->cubeMapID);
     }
 
     // ############################################################################
@@ -406,6 +429,9 @@ namespace RenderInterface{
     }
     glm::vec3 Camera::frontVec(){
         return this->camFront;
+    }
+    glm::vec3 Camera::posVec(){
+        return this->camPos;
     }
     void Camera::updateViewMat(){
         this->updateCamFront();

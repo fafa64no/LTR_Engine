@@ -78,6 +78,14 @@ namespace RenderInterface{
         unsigned int textureID;
         int width,height,nrChannels;
     };
+    class CubeMap{
+    public:
+        CubeMap(char** texturePath,unsigned int internalFormat);
+        void use();
+    private:
+        unsigned int cubeMapID;
+        int width[6],height[6],nrChannels[6];
+    };
 
     // ############################################################################
     //                            2D Stuff
@@ -93,14 +101,6 @@ namespace RenderInterface{
         glm::vec4 rotation;
         float depth;
     };
-    //class Atlas{
-    //public:
-    //    Atlas(char* atlasPath,glm::ivec2 textureSize,glm::ivec2 atlasSize,BumpAllocator* bumpAllocator,unsigned int internalFormat);
-    //    void Draw(unsigned int textureId);
-    //private:
-    //    glm::ivec2 atlasSize,textureSize;
-    //    Texture* atlasTextures;
-    //};
     
     // ############################################################################
     //                            3D Stuff
@@ -168,6 +168,8 @@ namespace RenderInterface{
         glm::mat4 viewMat();
         glm::mat4 projMat();
         glm::vec3 frontVec();
+        glm::vec3 posVec();
+
         void updateViewMat();
         void updateProjMat();
         void updateCamFront();

@@ -14,7 +14,7 @@ namespace Zones{
         glm::vec3 ambientLight;
         glm::vec3 sunDir;
         glm::vec3 sunCol;
-        void updateLightSpaceMatrix();
+        void updateLightSpaceMatrix(RenderInterface::RenderData* renderData);
         glm::mat4 getLightSpaceMatrix();
     private:
         RenderInterface::Camera* camera;
@@ -62,7 +62,9 @@ namespace Zones{
             100.0f
         );
     }
-    void Biome::updateLightSpaceMatrix(){
+    void Biome::updateLightSpaceMatrix(RenderInterface::RenderData* renderData){
+        glm::vec3 shadowCenter=renderData->currentCamera->posVec()+glm::vec3(0.0f,5.0f,0.0f);
+        this->camera->setPos(shadowCenter);
         this->camera->updateProjMat();
         this->camera->updateViewMat();
         this->lightSpaceMatrix=this->camera->projMat()*this->camera->viewMat();
@@ -145,7 +147,7 @@ namespace Zones{
         }
         testRegion=new Region(
             meshes,
-            0//nmeshes
+            nmeshes
         );
     }
 }

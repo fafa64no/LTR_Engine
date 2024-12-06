@@ -17,7 +17,7 @@
 //                            Cross Platform Functions
 // ############################################################################
 #include <chrono>
-double get_delta_time();
+double get_delta_time(bool readOnly=false);
 #include "input.h"
 
 #include "gl_renderer.cpp"
@@ -66,6 +66,7 @@ int main(){
 
     //Game loop
     SM_TRACE("Updating game");
+    float delayBetweenFrames_nanoseconds=1.0f/60.0f;
     while (gameData->is_running){
         float dt=get_delta_time();
         //Update
@@ -74,16 +75,17 @@ int main(){
         gl_render();
         platform_swap_buffers();
         transientStorage.used=0;
-        Sleep(8);
+        while(get_delta_time(true)<delayBetweenFrames_nanoseconds);
     }
     SM_TRACE("Exiting game");
     return 0;
 }
 
-double get_delta_time(){
+double get_delta_time(bool readOnly){
     static auto lastTime=std::chrono::steady_clock::now();
     auto currentTime=std::chrono::steady_clock::now();
     double delta=std::chrono::duration<double>(currentTime-lastTime).count();
-    lastTime=currentTime;
+    if(!readOnly)
+        lastTime=currentTime;
     return delta;
 }

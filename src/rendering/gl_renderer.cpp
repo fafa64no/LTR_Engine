@@ -48,7 +48,7 @@ static void APIENTRY gl_debug_callback(
     }
 }
 void gl_clear(){
-    glClearColor(0.3f,0.3f,0.3f,1);
+    glClearColor(1,1,1,1);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 }
 
@@ -58,7 +58,6 @@ void gl_clear(){
 void gl_render_2D_layer(){
     using namespace RenderInterface;
     for(int i=0;i<renderData->node2DCount;i++)renderData->nodes_2d_to_render[i]->Draw();
-    testFont->RenderText("Farid is very grumpy bro",-0.8f,0.0f,5.0f,glm::vec3(0.5f, 0.8f, 0.2f));
 }
 // ############################################################################
 void gl_render_3D_layer(){
@@ -75,24 +74,30 @@ void gl_render(){
     using namespace RenderInterface;
     unsigned int width{(unsigned int)input->screenSize.x},height{(unsigned int)input->screenSize.y};
     unsigned int pixWidth{(unsigned int)width/renderData->pixelation},pixHeight{(unsigned int)height/renderData->pixelation};
-    //Render shadow map
+    // Render shadow map
     glViewport(0,0,DIR_SHADOW_WIDTH,DIR_SHADOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER,dirLightDepthMapFBO);
     glEnable(GL_DEPTH_TEST);
     glClear(GL_DEPTH_BUFFER_BIT);
-    gameData->currentBiome->updateLightSpaceMatrix();
+    gameData->currentBiome->updateLightSpaceMatrix(renderData);
     for(int i=0;i<renderData->nodeCount;i++)renderData->nodes_to_render[i]->CastShadow(*dirShadowShader,renderData);
     glBindFramebuffer(GL_FRAMEBUFFER,0);
-    //Render view
+    // Render view
     glViewport(0,0,pixWidth,pixHeight);
     glBindFramebuffer(GL_FRAMEBUFFER,FBO);
     glEnable(GL_DEPTH_TEST);
     gl_clear();
+    // Render skybox
+    //      skyboxShader->use();
+    //      skyboxShader->setMat4("view",renderData->viewMat);
+    //      skyboxTexture->use();
+    //      glDrawArrays();
+    // Render 3d stuff
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D,dirLightDepthMap);
     gl_render_3D_layer();
     glBindFramebuffer(GL_FRAMEBUFFER,0);
-    //Post processing
+    // Post processing
     glViewport(0,0,width,height);
     gl_clear();
     frameQuadShader->use();
@@ -100,7 +105,7 @@ void gl_render(){
     glBindVertexArray(frameVAO);
     glBindTexture(GL_TEXTURE_2D,frameTexture);
     glDrawArrays(GL_TRIANGLES,0,6);
-    //Render UI
+    // Render UI
     gl_render_2D_layer();
 }
 
@@ -114,6 +119,7 @@ void gl_shaders_init(){
     dirShadowShader=new Shader("assets/shaders/shadows/dirShadowShader.vert","assets/shaders/shadows/dirShadowShader.frag");
 
     diffuseShader=new Shader("assets/shaders/render3d/diffuseShader.vert","assets/shaders/render3d/diffuseShader.frag");
+    //skyboxShader=new Shader("assets/shaders/render3d/skyboxShader.vert","assets/shaders/render3d/skyboxShader.frag");
 
     menuShader=new Shader("assets/shaders/render2d/menuShader.vert","assets/shaders/render2d/menuShader.frag");
     textShader=new Shader("assets/shaders/render2d/textShader.vert","assets/shaders/render2d/textShader.frag");
@@ -125,6 +131,17 @@ void gl_textures_init(){
     building1Texture=new Texture("assets/textures/building1.png",GL_RGB);
     building2Texture=new Texture("assets/textures/building2.png",GL_RGB);
     building3Texture=new Texture("assets/textures/farid.png",GL_RGBA);
+    //{
+    //    char texturepath[6][34]={
+    //        "assets/textures/skybox/front.jpg",
+    //        "assets/textures/skybox/back.jpg",
+    //        "assets/textures/skybox/left.jpg",
+    //        "assets/textures/skybox/right.jpg",
+    //        "assets/textures/skybox/top.jpg",
+    //        "assets/textures/skybox/bottom.jpg"
+    //    };
+    //    skyboxTexture=new CubeMap((char**)texturepath,GL_RGB);
+    //}
 }
 bool gl_init(){
     load_gl_functions();

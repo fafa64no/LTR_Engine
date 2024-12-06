@@ -37,6 +37,7 @@ static unsigned int quadVAO,textVAO,textVBO;
 static RenderInterface::Shader* testShader;
 
 static RenderInterface::Shader* frameQuadShader;
+static RenderInterface::Shader* skyboxShader;
 
 static RenderInterface::Shader* dirShadowShader;
 
@@ -54,9 +55,15 @@ static RenderInterface::Texture* building1Texture;
 static RenderInterface::Texture* building2Texture;
 static RenderInterface::Texture* building3Texture;
 // ############################################################################
+//                            CubeMaps
+// ############################################################################
+static RenderInterface::CubeMap* skyboxTexture;
+
+// ############################################################################
 //                            Fonts
 // ############################################################################
 static TextRender::FontStorage* testFont;
+
 // #############################################################################
 //                           OpenGL Function Pointers
 // #############################################################################
