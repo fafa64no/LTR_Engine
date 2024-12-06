@@ -1,2 +1,5 @@
 # LTR_Engine
-Because why not
+
+Simple graphics engine made before learning object oriented programming.
+
+Currently discontinued.
